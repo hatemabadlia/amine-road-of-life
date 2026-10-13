@@ -5,7 +5,7 @@
 // Fails silently where audio is unavailable.
 import { music } from './music';
 
-export type Surface = 'tile' | 'dirt' | 'asphalt' | 'grass';
+export type Surface = 'tile' | 'dirt' | 'asphalt' | 'grass' | 'carpet';
 
 interface Place {
   x: number;
@@ -163,7 +163,8 @@ class Sound {
 
   footstep(running: boolean, surface: Surface = 'dirt') {
     const g = running ? 1.35 : 1;
-    if (surface === 'tile') {
+    if (surface === 'carpet') this.burst(0.08, 400, 0.06 * g, this.sfx, 0.8);
+    else if (surface === 'tile') {
       this.burst(0.05, 2200, 0.22 * g, this.sfx, 3);
       this.tone(380, 0.04, 'sine', 0.05 * g, this.sfx, 300);
     } else if (surface === 'asphalt') this.burst(0.07, 1100, 0.24 * g, this.sfx, 2);

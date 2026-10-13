@@ -369,9 +369,11 @@ class Music {
 export const music = new Music();
 
 /** Which theme fits the moment: life stage, night, and how the story is going. */
-export function themeFor(opts: { screen: string; age: number; hour: number; risk: number; ending: boolean; event?: string }): Theme | null {
+export function themeFor(opts: { screen: string; age: number; hour: number; risk: number; ending: boolean; event?: string; inMosque?: boolean }): Theme | null {
   if (opts.ending) return 'ending';
   if (opts.screen !== 'game') return 'menu';
+  // no music inside the mosque
+  if (opts.inMosque) return null;
   if (opts.event === 'wedding') return 'wedding';
   if (opts.risk >= 70) return 'tense';
   if (opts.hour >= 21.5 || opts.hour < 5.5) return 'night';

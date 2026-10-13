@@ -232,3 +232,50 @@ test('chapter 16: the bus ride plays and drops Amine at the cybercafé', async (
   const p = await page.evaluate(() => window.__AMINE__.pose());
   expect(Math.hypot(p.x - 5.8, p.z + 61.5)).toBeLessThan(3);
 });
+
+test('chapter 8: Friday prayer — ablution, shoes off, khutba and prayer inside the mosque', async ({ page }) => {
+  test.setTimeout(300_000);
+  await startNewGame(page);
+  await page.evaluate(() => window.__AMINE__.jumpTo(8));
+  const visited: string[] = [];
+  let prayedInside = false;
+  for (let guard = 0; guard < 120; guard++) {
+    const st = await page.evaluate(() => {
+      const s = window.__AMINE__.state();
+      return { card: s.card, dialogue: !!s.dialogue, ch: s.game.chapter };
+    });
+    if (st.ch !== 8) break;
+    if (st.card) {
+      await page.waitForTimeout(950);
+      await page.getByTestId('start-chapter').click();
+      continue;
+    }
+    if (st.dialogue) {
+      await advanceDialogue(page);
+      continue;
+    }
+    const o = await page.evaluate(() => window.__AMINE__.objective());
+    if (!o) {
+      await page.waitForTimeout(150);
+      continue;
+    }
+    visited.push(o.id);
+    await page.evaluate((t) => window.__AMINE__.goTo(t), o.target);
+    await page.waitForTimeout(600);
+    if (o.id === 'pray') {
+      const p = await page.evaluate(() => window.__AMINE__.pose());
+      // inside the prayer hall (walls x 29..41, z -56..-42)
+      prayedInside = p.x > 29 && p.x < 41 && p.z > -56 && p.z < -42;
+    }
+    if (o.type !== 'goto' && !(await page.evaluate(() => !!window.__AMINE__.state().dialogue))) {
+      await expect(page.getByTestId('prompt')).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press('KeyE');
+      await page.waitForTimeout(200);
+    }
+  }
+  expect(visited).toEqual(expect.arrayContaining(['to_mosque', 'wudu', 'shoes', 'khutba', 'pray', 'after_prayer']));
+  expect(prayedInside).toBe(true);
+  const g = await page.evaluate(() => window.__AMINE__.state().game);
+  expect(g.chapter).toBe(9);
+  expect(g.flags.listened_khutba).toBe(true);
+});

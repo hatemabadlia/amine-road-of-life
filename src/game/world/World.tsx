@@ -6,6 +6,7 @@ import { CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody } fro
 import { FOOTPRINTS, ROADS, WORLD_HALF } from './layout';
 import { facadeMaterial, flatMat, groundTexture, mat, PALETTE, rng } from './materials';
 import { Districts } from './Districts';
+import { MosqueBuilding } from './Mosque';
 import { Bench, Box, Car, Cyl, Door, Flag, HidingRoof, Lamp, Palm, RoofKit, Sign, Tree, WallLine, Window } from './primitives';
 
 // ---------------------------------------------------------------------------
@@ -486,30 +487,6 @@ function PublicBuildings() {
   );
 }
 
-function Mosque() {
-  return (
-    <>
-      <Box p={[35, 3, -48]} s={[12, 6, 16]} c="#f4f1ea" col />
-      <mesh position={[35, 6, -48]} castShadow material={mat('#e8e3d7')}>
-        <sphereGeometry args={[3.4, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-      </mesh>
-      <Box p={[39, 9, -54]} s={[2.4, 18, 2.4]} c="#f4f1ea" col />
-      <Box p={[39, 15, -54]} s={[3, 0.4, 3]} c="#1e8449" />
-      <mesh position={[39, 18.8, -54]} castShadow material={mat('#1e8449')}>
-        <coneGeometry args={[1.4, 2.2, 4]} />
-      </mesh>
-      <Box p={[35, 6.1, -40]} s={[12.2, 0.3, 0.3]} c="#1e8449" />
-      <mesh position={[35, 1.3, -39.97]} material={mat('#3e2723')}>
-        <planeGeometry args={[1.8, 2.6]} />
-      </mesh>
-      <mesh position={[35, 2.6, -39.96]} material={mat('#3e2723')}>
-        <circleGeometry args={[0.9, 16, 0, Math.PI]} />
-      </mesh>
-      <Sign p={[35, 4.3, -39.9]} text="مسجد الرحمة" w={3.4} h={0.7} bg="#145a32" />
-    </>
-  );
-}
-
 function Grandpa() {
   return (
     <>
@@ -751,7 +728,7 @@ export const World = memo(function World({ age }: { age: number }) {
         <Field />
         <Workshop />
         <PublicBuildings />
-        <Mosque />
+        <MosqueBuilding />
         <Grandpa />
         <DecoBlocks />
         <StreetProps />

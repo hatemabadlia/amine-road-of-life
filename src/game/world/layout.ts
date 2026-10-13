@@ -59,6 +59,9 @@ export const SPOTS: Spot[] = [
   spot('training_center', 'مركز التكوين المهني', -60, -22, 3),
   spot('center', 'مركز الإصغاء', 15, -44, 3),
   spot('mosque_front', 'قدام الجامع', 35, -37.5, 3),
+  spot('mosque_hall', 'قاعة الصلاة', 35, -47.5, 3),
+  spot('mosque_row', 'الصف الأول', 36.05, -50.2, 0.1),
+  spot('mosque_side', 'آخر الجامع', 31.2, -44.6, 1.5),
   spot('grandpa', 'دار جدّي', -23, -55, 3.5),
   // places across town (reached on foot or by bus)
   spot('cyber_front', 'قدام السيبر', 5.8, -61.5, 2.5),
@@ -98,7 +101,9 @@ export const OBJECTS: WorldObject[] = [
   obj('olive_tree', 'زيتونة جدّي', 'عاون جدّك', -17, -55),
   obj('street_sign', 'لافتة الطريق', 'خمّم وين تروح', -7.5, 5.6),
   obj('bus_sign', 'لافتة الحافلة', 'استنى الحافلة', 31, 5.2),
-  obj('mosque_door', 'باب الجامع', 'ادخل', 35, -40.3),
+  obj('wudu', 'الميضة', 'توضّا', 26.2, -44),
+  obj('shoe_rack', 'رفّ الصبابط', 'نحّي صبّاطك', 31.6, -41.1),
+  obj('prayer_row', 'الصف الأول', 'اقعد في الصف', 35, -51.2),
   obj('cyber_pc', 'البيسي', 'اقعد قدام البيسي', 16.2, -64),
   obj('exam_desk', 'طاولة الامتحان', 'اقعد في بلاصتك', 73.5, 20.2),
   obj('hospital_desk', 'استقبال السبيطار', 'سقسي على المريض', -64, 55.5),
@@ -125,6 +130,7 @@ export const FOOTPRINTS: Footprint[] = [
   { id: 'block_s', name: '', x0: 10, z0: 50, x1: 40, z1: 66, kind: 'deco' },
   { id: 'block_ne', name: '', x0: 50, z0: -66, x1: 72, z1: -40, kind: 'deco' },
   { id: 'neighbor2', name: '', x0: -40, z0: -46, x1: -20, z1: -38, kind: 'deco' },
+  { id: 'mida', name: 'الميضة', x0: 24.4, z0: -47.2, x1: 29, z1: -40.8, kind: 'public' },
   { id: 'cyber', name: 'السيبر', x0: 8, z0: -66, x1: 20, z1: -57, kind: 'shop' },
   { id: 'hospital', name: 'السبيطار', x0: -76, z0: 52, x1: -52, z1: 74, kind: 'public' },
   { id: 'exam', name: 'مركز الامتحان', x0: 65, z0: 10, x1: 78, z1: 25, kind: 'public' },
@@ -151,7 +157,8 @@ export function insideFootprint(id: string, x: number, z: number, pad = 0): bool
 }
 
 /** What Amine is walking on (for footstep sounds). */
-export function surfaceAt(x: number, z: number): 'tile' | 'dirt' | 'asphalt' | 'grass' {
+export function surfaceAt(x: number, z: number): 'tile' | 'dirt' | 'asphalt' | 'grass' | 'carpet' {
+  if (x > 29 && x < 41 && z > -56 && z < -42.2) return 'carpet';
   if ((x > 10 && x < 40 && z > 12 && z < 42) || (x > 48 && x < 76 && z > 56 && z < 72)) return 'grass';
   if (ROADS.some(([x0, z0, x1, z1]) => x > x0 && x < x1 && z > z0 && z < z1)) return 'asphalt';
   // sidewalks along the two main streets

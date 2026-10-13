@@ -112,8 +112,8 @@ export const SIDES: SideActivity[] = [
   },
   {
     id: 'mosque',
-    target: 'mosque_door',
-    label: 'ادخل للجامع شوية',
+    target: 'prayer_row',
+    label: 'اقعد في الجامع شوية',
     dialogue: [N('السكينة. الحصير البارد، وصوت القرآن الخفيف.'), fx({ confidence: 1, health: 1 }), pass(20)],
   },
   {

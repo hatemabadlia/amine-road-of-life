@@ -175,6 +175,15 @@ export const CHARACTERS: Character[] = [
     ambient: [{ lines: ['تعال يا وليدي، اقعد حدايا.', 'الزيتونة كيما الراجل، تكبر بالصبر.'] }],
   },
   {
+    id: 'imam',
+    name: 'الإمام سي عبد الحميد',
+    role: 'إمام مسجد الرحمة',
+    home: [35.4, -53.9],
+    color: '#1e8449',
+    look: { skin: '#c18a5f', shirt: '#f4f1ea', pants: '#e8e3d7', hair: '#9e9e9e', scale: 1.0, beard: true, cap: '#ffffff', shoes: '#f4f1ea' },
+    ambient: [{ lines: ['السلام عليكم يا وليدي. الجامع دارك، ادخل وقت ما تحب.', 'ربي يحفظك ويحفظ والديك.'] }],
+  },
+  {
     id: 'samia',
     name: 'الدكتورة سامية',
     role: 'أخصائية نفسانية في مركز الإصغاء',

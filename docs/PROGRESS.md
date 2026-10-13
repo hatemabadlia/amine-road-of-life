@@ -11,7 +11,7 @@
 7. All 68 chapters with real content; automated validation (0 issues).
 8. Side activities, ambient life, procedural audio, day/night, visual polish, mobile controls.
 9. Ending system (72 endings, all proven reachable), coverage report.
-10. Tests: 47 unit/integration, 18 Playwright runs (desktop + mobile, 1 mobile-only skipped on desktop); lint, type-check and build pass.
+10. Tests: 47 unit/integration, 20 Playwright runs (desktop + mobile, 1 mobile-only skipped on desktop); lint, type-check and build pass.
 
 ## Graphics pass
 - Gradient sky shader with sun disc, halo and moon; drifting low-poly clouds; keyframed time-of-day palette (dawn, day, dusk, night) driving sun/moon light, hemisphere fill, fog and cloud tint.
@@ -43,6 +43,23 @@
   - The living-room sofa blocked the bedroom doorway, so Amine couldn't walk out by keyboard.
   - Two filler blocks overlapped the new hospital and stadium sites.
 - **New tests:** pathfinding (unit), the bus ride (store and e2e), every place reachable on foot (e2e, against the real colliders), music composition and themes (unit), music audibly playing (e2e level meter).
+
+## Friday prayer and the mosque
+- The mosque (مسجد الرحمة) can now be entered. It has:
+  - an ablution area (الميضة) with taps and stools outside;
+  - a vestibule with shoe racks and a Quran shelf;
+  - a carpeted prayer hall with row lines, zellige tiles, a tiled mihrab, a minbar, columns, a chandelier and stained-glass arched windows;
+  - the minaret, now on the street corner.
+- The roof and dome hide when Amine is inside, and there's no music in the mosque.
+- **Chapter 8 (a Friday):** after the souk Baba says it's time for the Friday prayer. Amine:
+  1. walks to the mosque;
+  2. makes ablution;
+  3. leaves his shoes on the rack (and chooses to sit by Baba or Walid);
+  4. listens to the imam's khutba about honest earning and kindness to parents;
+  5. prays in the first row among rows of barefoot worshippers (shown 12:00–13:30);
+  6. afterwards chooses whether to give charity to the old man at the door.
+- New character: the imam, سي عبد الحميد. The prayer itself is narrated, not animated, and no recitation is synthesised.
+- e2e test: the Friday chapter played through the real UI, checking that Amine prays inside the hall.
 
 ## Known limitations
 - Environment art is procedural low-poly. Every character shares one base body (only colours and accessories differ). There's no sitting animation, and the "lying in bed" pose is the standing pose rotated. No screen-space AO (tried; it darkened the frame and was costly).

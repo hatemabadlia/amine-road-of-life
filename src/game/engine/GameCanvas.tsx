@@ -16,6 +16,7 @@ import { Townsfolk } from '../world/Townsfolk';
 import { NavBuilder } from '../world/NavBuilder';
 import { EventDecor } from '../world/EventDecor';
 import { BusRide } from '../world/BusRide';
+import { MosqueLife } from '../world/Mosque';
 import { useGame } from '../store';
 import { input } from '../player/input';
 
@@ -43,6 +44,7 @@ function Scene({ onReady }: { onReady: () => void }) {
         <StoryNPCs />
         <Townsfolk />
         <NavBuilder />
+        <MosqueLife />
         <Ball />
         <CameraRig />
         <Interaction />

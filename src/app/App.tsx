@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { chapterOf, useGame } from '../game/store';
+import { chapterOf, livePose, useGame } from '../game/store';
+import { insideFootprint } from '../game/world/layout';
 import { Menu } from './Menu';
 import { EndingScreen } from './Ending';
 import { sound } from '../game/audio/sound';
@@ -42,6 +43,7 @@ export function App() {
         risk: g?.stats.risk ?? 0,
         ending: st.screen === 'ending',
         event: g ? chapterOf(g).event : undefined,
+        inMosque: st.screen === 'game' && (insideFootprint('mosque', livePose.x, livePose.z) || insideFootprint('mida', livePose.x, livePose.z)),
       });
       music.play(theme, st.screen === 'game' ? (g?.chapter ?? 1) : 0);
       music.setDuck(!!st.dialogue);
