@@ -376,3 +376,59 @@ test('chapter 3: volunteering starts at age 10 — Hassane invites Amine and he 
   expect(g.flags.planted_tree).toBe(true);
   expect(g.flags.volunteer_spirit).toBe(true);
 });
+
+test('chapter 15: Ramadan — food baskets at Dar Chabab, iftar at home, tarawih at the mosque', async ({ page }) => {
+  test.setTimeout(300_000);
+  await startNewGame(page);
+  await page.evaluate(() => window.__AMINE__.jumpTo(15));
+  const visited: string[] = [];
+  // the hour when each objective became active
+  const hours: Record<string, number> = {};
+  for (let guard = 0; guard < 150; guard++) {
+    const st = await page.evaluate(() => {
+      const s = window.__AMINE__.state();
+      return { card: s.card, view: s.dialogue?.view ?? null, ch: s.game.chapter };
+    });
+    if (st.ch !== 15) break;
+    if (st.card) {
+      await page.waitForTimeout(950);
+      await page.getByTestId('start-chapter').click();
+      continue;
+    }
+    if (st.view) {
+      // first option everywhere: includes "I'll help pack the baskets"
+      if (st.view.kind === 'choice') await page.getByTestId('choice-0').click();
+      else {
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(40);
+        if ((await page.evaluate(() => window.__AMINE__.state().dialogue?.view.kind ?? null)) === 'line') await page.keyboard.press('Enter');
+      }
+      await page.waitForTimeout(80);
+      continue;
+    }
+    const o = await page.evaluate(() => window.__AMINE__.objective());
+    if (!o) {
+      await page.waitForTimeout(150);
+      continue;
+    }
+    if (!visited.includes(o.id)) {
+      visited.push(o.id);
+      hours[o.id] = await page.evaluate(() => (window.__AMINE__.state().game.time % 1440) / 60);
+    }
+    await page.evaluate((t) => window.__AMINE__.goTo(t), o.target);
+    await page.waitForTimeout(600);
+    if (o.type !== 'goto' && !(await page.evaluate(() => !!window.__AMINE__.state().dialogue))) {
+      await expect(page.getByTestId('prompt')).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press('KeyE');
+      await page.waitForTimeout(200);
+    }
+  }
+  expect(visited).toEqual(expect.arrayContaining(['to_dar', 'hassane_ramadan', 'baskets', 'home', 'iftar', 'to_mosque', 'taraweeh', 'imam_ramadan']));
+  // iftar just before sunset, tarawih after it
+  expect(hours.home).toBeGreaterThanOrEqual(18.8);
+  expect(hours.home).toBeLessThan(19.2);
+  expect(hours.to_mosque).toBeGreaterThanOrEqual(20);
+  const g = await page.evaluate(() => window.__AMINE__.state().game);
+  expect(g.chapter).toBe(16);
+  expect(g.flags.ramadan_baskets).toBe(true);
+});

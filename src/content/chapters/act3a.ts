@@ -322,7 +322,8 @@ const ch52: Chapter = {
   age: 16,
   summary: 'تيليفون في نص الليل. مراد في الزنقة، وما يجاوبش.',
   start: { spot: 'home_bedroom', time: '01:30' },
-  cast: { mourad: 'alley', fatiha: 'home_door' },
+  cast: { mourad: 'alley', fatiha: 'home_door', samia: 'hospital_ward' },
+  lying: ['mourad'],
   opening: [N('الواحدة والنص تاع الليل. ميساج من نمرة ما يعرفهاش: "صاحبك مراد في الزنقة. ما راهوش يتحرك."')],
   objectives: [
     goto('alley', 'أجري للزنقة!', 'alley'),
@@ -346,16 +347,17 @@ const ch52: Chapter = {
           then: [N('أمين جرى. ومن البعيد، سمع واحد آخر يعيّط. الحماية جات.'), N('مراد عاش. بصح أمين ما عاشش هاذيك الليلة مرتاح.')],
         }),
       ),
-    ], { moves: [{ npc: 'mourad', spot: 'center' }] }),
+    ], { moves: [{ npc: 'mourad', spot: 'hospital_bed' }] }),
     talk('fatiha', 'خالتي فتيحة — الصباح', 'fatiha', [
       when('mourad_saved', [say('fatiha', 'الطبيب قال: عشر دقايق زايدين وكان... ربي يجازيك يا أمين.'), say('fatiha', 'مراد فاق. سقسا عليك.')], [say('fatiha', 'مراد في السبيطار. واحد ما نعرفوش عيّط للحماية. الحمد لله.')]),
     ], { skipTo: '09:00' }),
-    goto('center', 'روح لمراد — راه نقلوه للمركز', 'center', { if: 'mourad_saved' }),
+    goto('hospital', 'روح لمراد — راه في السبيطار', 'hospital_front', { if: 'mourad_saved' }),
     talk(
       'mourad_after',
       'مراد',
       'mourad',
       [
+        N('الفرملية قالت: "ما تطوّلش. راه فاق، بصح مازال عيّان." مراد في الفراش، والسيروم في يدّو.', { cam: 'wide' }),
         MO('...جيت.'),
         A('ديما نجي.'),
         MO('كنت نموت يا أمين. بالصح. ما نحبش نموت.', { cam: 'close' }),
@@ -365,7 +367,7 @@ const ch52: Chapter = {
             if: 'mourad>=35 | offered_help_mourad | mourad_first_session',
             set: ['mourad_recovering'],
             fx: { mourad: 10 },
-            then: [MO('...كل خطوة؟'), A('كل خطوة.'), say('samia', 'مراد، البرنامج يبدا الاثنين. وأمين يقدر يجي للجلسات العائلية إذا حبيت.')],
+            then: [MO('...كل خطوة؟'), A('كل خطوة.'), say('samia', 'مراد، أنا الدكتورة سامية من مركز الإصغاء. البرنامج يبدا الاثنين. وأمين يقدر يجي للجلسات العائلية إذا حبيت.')],
           }),
           opt('ربي يشفيك يا مراد.', 'neutral', { fx: { mourad: 2 }, then: [MO('...إيه.')] }),
         ),

@@ -666,9 +666,9 @@ const ch33: Chapter = {
   mission: 'الأبواب تتسكّر',
   age: 14,
   summary: 'الفريق الولائي، الرحلة المدرسية... الأبواب تتفتح غير للي حضّر.',
-  start: { spot: 'football', time: '16:00' },
-  cast: { coach: 'football', walid: 'football' },
-  opening: [N('المدرب حسين عندو القائمة تاع الفريق الولائي.')],
+  start: { spot: 'stadium_gate', time: '16:00' },
+  cast: { coach: 'stadium', walid: 'stadium' },
+  opening: [N('الملعب البلدي. التدريب الأخير قبل الاختيار. المدرب حسين عندو القائمة تاع الفريق الولائي.')],
   objectives: [
     talk('coach', 'المدرب حسين', 'coach', [
       when(
@@ -687,7 +687,8 @@ const ch33: Chapter = {
     talk('walid', 'وليد', 'walid', [
       when('regional_team', [say('walid', 'نسافرو مع بعض لعنابة! ما نصدقش!')]),
       when('missed_regional', [say('walid', 'سامحني يا خو... كنت نحب تكون معانا.'), choose('react', opt('العام الجاي. نصلّح.', 'good', { set: ['determined_33'], fx: { confidence: 3 } }), opt('ما يهمنيش.', 'neutral', { fx: { confidence: -2 } }))]),
-    ]),
+      say('walid', 'يالله، الحافلة. الأستاذة نادية علّقت حاجة في الإكمالية.'),
+    ], { ride: 'lycee_gate' }),
     goto('school', 'الإكمالية — لوحة الرحلة', 'lycee_courtyard'),
     talk('nadia', 'الأستاذة نادية', 'nadia', [
       NA('الرحلة العلمية للمرصد تاع الجزائر. أربعة تلاميذ من كل قسم.'),

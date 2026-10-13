@@ -76,6 +76,19 @@
 - **Camera:** the first shot of every conversation is now a hard cut (no camera glide).
 - **e2e tests:** chapter 3 (the first tree at age 10) and chapter 41 (clean-up path), both played through the real UI.
 
+## Ramadan, and the new places in more chapters
+- **Chapter 15 is now a Ramadan chapter** (رمضان بلا شهرية). Baba is working in the south and his pay is late; it is Amine's first full fast. Every earlier decision and flag is kept. New parts:
+  1. **Food baskets at Dar Chabab.** Hassane is packing قفة رمضان. On the family list Amine reads the name of Khalti Fatiha (Mourad's family), and chooses whether to keep it secret.
+  2. **Iftar at home.** The clock jumps to 18:50, and the streets empty because everyone is at the table. Dates and milk, Selma's pride, and Baba calling from Hassi Messaoud. There's a soft penalty for arriving after the adhan.
+  3. **Tarawih at the mosque.** From 20:00 to 22:00 the hall fills with rows of worshippers. Afterwards the imam speaks with Amine.
+  - **The neighbourhood in Ramadan** (chapter `event: 'ramadan'`): strings of lights run from the minaret to the façade, with a lit crescent over the door and a zlabia/qalb el louz stall at the souk. Townspeople go home for iftar and the men walk to tarawih.
+- **Chapter 33:** the regional-team selection now happens at the municipal stadium, followed by a bus ride to school.
+- **Chapter 44:** after the final revision, the BEM exam day takes place at the exam centre. A new choice (`exam_try`) lets someone who had given up still write what they know.
+- **Chapter 52:** after the crisis night, Amine visits Mourad in a hospital bed (previously the listening centre), and Dr Samia comes to the ward. Mourad is shown collapsed on the ground in the alley.
+- **Fix:** characters lying down (Salah in ch64, Mourad in ch52) lay face-down. They now lie on their backs.
+- **e2e test:** chapter 15 played through the real UI. It checks the baskets, that iftar is just before sunset and that tarawih comes after it.
+- Dev helper: `scripts/chapter-shots.mjs <chapter> <outDir> '<picks>' '<flags>'` plays one chapter and takes a screenshot of every scene.
+
 ## Known limitations
 - Environment art is procedural low-poly. Every character shares one base body (only colours and accessories differ). There's no sitting animation, and the "lying in bed" pose is the standing pose rotated. No screen-space AO (tried; it darkened the frame and was costly).
 - No voice acting. Music is synthesised (not recorded instruments), and I couldn't listen to it, only measure that it plays.

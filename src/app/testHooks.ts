@@ -51,6 +51,12 @@ export function exposeTestHooks() {
       useGame.setState({ game: { ...g }, card: true, dialogue: null, spawn: { x: sp.x, z: sp.z, yaw: Math.PI, nonce: Date.now() } });
       return true;
     },
+    /** teleport to a point facing a direction, at an hour of the current day (screenshots) */
+    spawnAt: (x: number, z: number, yaw: number, hour?: number) => {
+      const g = useGame.getState().game;
+      if (g && hour !== undefined) g.time = Math.floor(g.time / 1440) * 1440 + Math.round(hour * 60);
+      useGame.setState({ spawn: { x, z, yaw, nonce: Date.now() } });
+    },
     /** ASCII view of the nav grid around a point (debugging) */
     navAround: (x: number, z: number, r = 8) => {
       const g = nav.grid;

@@ -275,13 +275,16 @@ const WORSHIPPERS: Look[] = [
   { skin: '#dcae85', shirt: '#2471a3', pants: '#1c2833', hair: '#3b2a20', scale: 0.72, shoes: '#dcae85' },
 ];
 
-/** On Friday from 12:00 to 13:30, rows of worshippers face the mihrab (a gap stays open for Amine). */
+/** Rows of worshippers face the mihrab (a gap stays open for Amine): the Friday
+ *  prayer from 12:00 to 13:30, and tarawih in Ramadan from 20:00 to 22:00. */
 function Worshippers() {
-  // only on a Friday chapter, from 12:00 to 13:30 (colliders included)
   const active = useGame((s) => {
-    if (!s.game || chapterOf(s.game).event !== 'friday') return false;
+    if (!s.game) return false;
+    const ev = chapterOf(s.game).event;
     const h = (s.game.time % 1440) / 60;
-    return h >= 12 && h < 13.5;
+    if (ev === 'friday') return h >= 12 && h < 13.5;
+    if (ev === 'ramadan') return h >= 20 && h < 22;
+    return false;
   });
   const people = useMemo(() => {
     const out: { x: number; z: number; look: Look }[] = [];

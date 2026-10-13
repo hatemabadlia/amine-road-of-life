@@ -10,6 +10,7 @@ import { activeObjective, chapterOf, livePose, useGame } from '../store';
 import { agents, arrived, face, makeAgent, stepAgent, walkTo } from './agents';
 import { nav, pathLength } from './nav';
 import { castPositions } from './cast';
+import { spotById } from './layout';
 import { ballRef, npcPositions, useBall } from '../engine/refs';
 import { sound } from '../audio/sound';
 
@@ -37,6 +38,7 @@ function nameTexture(name: string, color: string) {
 
 /** Characters who are busy with their hands when standing at their usual place. */
 const WORKERS = new Set(['bachir', 'jeddi']);
+const BED = spotById.get('hospital_bed')!;
 
 function NPC({ id, x, z, lying = false }: { id: string; x: number; z: number; lying?: boolean }) {
   const ch = characterById.get(id)!;
@@ -95,11 +97,13 @@ function NPC({ id, x, z, lying = false }: { id: string; x: number; z: number; ly
     else agent.speed = 0;
     if ((!walking || waiting) && d < 5 && !lying) face(agent, livePose.x, livePose.z, dt);
     if (lying && !walking) {
-      // in bed: feet toward the room, head on the pillow (+z)
+      // in bed: feet toward the room, head on the pillow (+z); elsewhere collapsed on the ground
+      const y = Math.hypot(agent.x - BED.x, agent.z - BED.z) < 1.5 ? 0.78 : 0.12;
       body.current?.setNextKinematicTranslation({ x: agent.x, y: -20, z: agent.z });
-      head.set(agent.x, 1.0, agent.z + 0.7);
-      group.current?.position.set(agent.x, 0.78, agent.z - 0.95);
-      group.current?.rotation.set(Math.PI / 2, 0, 0);
+      head.set(agent.x, y + 0.22, agent.z + 0.7);
+      group.current?.position.set(agent.x, y, agent.z - 0.95);
+      // on the back: tip over backwards, then turn so the head points to +z
+      group.current?.rotation.set(-Math.PI / 2, Math.PI, 0, 'YXZ');
     } else {
       body.current?.setNextKinematicTranslation({ x: agent.x, y: 0.9 * ch.look.scale, z: agent.z });
       head.set(agent.x, h * 0.85, agent.z);

@@ -9,7 +9,7 @@ import { CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/r
 import type { Look } from '../../content/characters';
 import type { HumanoidHandle } from '../player/Humanoid';
 import { Character } from '../player/SkinnedHuman';
-import { useGame } from '../store';
+import { chapterOf, useGame } from '../store';
 import { agents, arrived, face, makeAgent, stepAgent, walkTo, type Agent } from './agents';
 import { spotById } from './layout';
 import { nav } from './nav';
@@ -64,6 +64,11 @@ function hourOf(): number {
   return ((useGame.getState().game?.time ?? 600) % 1440) / 60;
 }
 
+function ramadan(): boolean {
+  const g = useGame.getState().game;
+  return !!g && chapterOf(g).event === 'ramadan';
+}
+
 function spotPoint(id: string, r: () => number): [number, number] {
   const s = spotById.get(id)!;
   const a = r() * Math.PI * 2;
@@ -99,8 +104,11 @@ function Townsperson({ person, index }: { person: Person; index: number }) {
       return;
     }
     const night = h >= 22.5 || h < 6.2;
+    const fasting = ramadan();
+    // Ramadan: the streets empty just before iftar, everyone is at home at the table
+    const iftar = fasting && h >= 18.75 && h < 19.9;
     // dusk: kids go home first, then everyone
-    const curfew = night || (person.role === 'kid' && h >= 20);
+    const curfew = night || iftar || (person.role === 'kid' && h >= 20 && !fasting);
     if (curfew) {
       if (p.kind === 'indoors') return;
       const door = DOORS[Math.floor(r() * DOORS.length)];
@@ -115,7 +123,10 @@ function Townsperson({ person, index }: { person: Person; index: number }) {
       agent.z = door[1];
     }
     let place: string;
-    const praying = (person.role === 'man' || person.role === 'elder') && PRAYERS.some((t) => h > t - 0.35 && h < t + 0.25);
+    const men = person.role === 'man' || person.role === 'elder';
+    // tarawih after iftar: the men and elders fill the mosque until late
+    const tarawih = fasting && men && h >= 19.9 && h < 22;
+    const praying = tarawih || (men && PRAYERS.some((t) => h > t - 0.35 && h < t + 0.25));
     if (praying) place = 'mosque_front';
     else if (person.role === 'kid' && h >= 15 && h < 19.5) place = 'football';
     else {
