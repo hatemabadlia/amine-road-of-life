@@ -9,6 +9,7 @@ import { input, moveVector } from './input';
 import { livePose, useGame } from '../store';
 import { camState } from '../engine/refs';
 import { sound } from '../audio/sound';
+import { surfaceAt } from '../world/layout';
 import { WORLD_HALF } from '../world/layout';
 
 const WALK = 3.3;
@@ -146,7 +147,7 @@ export function Player() {
       const stride = hs > 4.5 ? 1.5 : 1.1;
       if (stepDist.current > stride) {
         stepDist.current = 0;
-        sound.footstep(hs > 4.5);
+        sound.footstep(hs > 4.5, surfaceAt(livePose.x, livePose.z));
       }
     }
   });

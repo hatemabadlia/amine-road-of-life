@@ -5,6 +5,7 @@ import { input } from '../game/player/input';
 import { npcPositions } from '../game/engine/refs';
 import { OBJECTS, SPOTS, objectById, spotById } from '../game/world/layout';
 import { findPath, nav, pathLength } from '../game/world/nav';
+import { music } from '../game/audio/music';
 
 export function exposeTestHooks() {
   if (typeof window === 'undefined') return;
@@ -38,6 +39,7 @@ export function exposeTestHooks() {
       const p = findPath(nav.grid, [pa.x, pa.z], [pb.x, pb.z]);
       return p ? { points: p.length, length: pathLength([pa.x, pa.z], p) } : null;
     },
+    music: () => ({ theme: music.current(), level: music.level() }),
     places: () => [...SPOTS.map((s) => s.id), ...OBJECTS.map((o) => o.id)],
     interact: () => {
       input.interactQueued = true;

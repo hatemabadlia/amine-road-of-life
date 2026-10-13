@@ -11,6 +11,7 @@ declare global {
       nav: () => { ready: boolean; w: number; blocked: number };
       route: (a: string, b: string) => { points: number; length: number } | null;
       places: () => string[];
+      music: () => { theme: string | null; level: number };
     };
   }
 }
@@ -181,4 +182,16 @@ test('every story place and object can be reached on foot from the front door', 
     if (!r) bad.push(id);
   }
   expect(bad).toEqual([]);
+});
+
+test('music plays and follows the story: menu theme, then the childhood theme in chapter 1', async ({ page }) => {
+  await page.goto(URL);
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(URL);
+  await page.locator('.title').click(); // any gesture unlocks audio
+  await expect.poll(() => page.evaluate(() => window.__AMINE__.music().theme), { timeout: 10_000 }).toBe('menu');
+  await expect.poll(() => page.evaluate(() => window.__AMINE__.music().level), { timeout: 15_000 }).toBeGreaterThan(0.001);
+  await page.getByTestId('new-game').click();
+  await expect(page.getByTestId('chapter-card')).toBeVisible({ timeout: 60_000 });
+  await expect.poll(() => page.evaluate(() => window.__AMINE__.music().theme), { timeout: 10_000 }).toBe('childhood');
 });

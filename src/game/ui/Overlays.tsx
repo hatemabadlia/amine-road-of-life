@@ -53,7 +53,7 @@ export function ChapterCard() {
 export function SettingsPanel() {
   const s = useGame((st) => st.settings);
   const set = (p: Partial<Settings>) => useGame.getState().updateSettings(p);
-  const range = (k: 'master' | 'ambience' | 'sfx' | 'sensitivity', label: string, max = 1, min = 0) => (
+  const range = (k: 'master' | 'music' | 'ambience' | 'sfx' | 'sensitivity', label: string, max = 1, min = 0) => (
     <div className="row">
       <span>{label}</span>
       <input type="range" min={min} max={max} step={0.05} value={s[k]} onChange={(e) => set({ [k]: Number(e.target.value) } as Partial<Settings>)} aria-label={label} />
@@ -69,6 +69,7 @@ export function SettingsPanel() {
     <div>
       <h3>الصوت</h3>
       {range('master', 'الصوت العام')}
+      {range('music', 'الموسيقى')}
       {range('ambience', 'أصوات الحومة')}
       {range('sfx', 'المؤثرات')}
       <h3>الصورة</h3>

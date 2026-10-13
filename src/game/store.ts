@@ -33,6 +33,7 @@ import {
 } from './save/save';
 import { objectById, spotById } from './world/layout';
 import { sound } from './audio/sound';
+import { music } from './audio/music';
 
 export type Screen = 'menu' | 'game' | 'ending';
 
@@ -51,6 +52,7 @@ export interface Toast {
 
 export interface Settings {
   master: number;
+  music: number;
   ambience: number;
   sfx: number;
   quality: 'low' | 'medium' | 'high';
@@ -64,6 +66,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   master: 0.8,
+  music: 0.5,
   ambience: 0.6,
   sfx: 0.8,
   quality: 'high',
@@ -522,6 +525,7 @@ export const useGame = create<GameStore>((set, get) => {
         /* ignore */
       }
       sound.setVolumes(settings.master, settings.ambience, settings.sfx);
+      music.setVolume(settings.music);
       set({ settings });
     },
 

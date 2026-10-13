@@ -130,3 +130,13 @@ export function insideFootprint(id: string, x: number, z: number, pad = 0): bool
   if (!f) return false;
   return x > f.x0 - pad && x < f.x1 + pad && z > f.z0 - pad && z < f.z1 + pad;
 }
+
+/** What Amine is walking on (for footstep sounds). */
+export function surfaceAt(x: number, z: number): 'tile' | 'dirt' | 'asphalt' | 'grass' {
+  if (x > 10 && x < 40 && z > 12 && z < 42) return 'grass';
+  if (ROADS.some(([x0, z0, x1, z1]) => x > x0 && x < x1 && z > z0 && z < z1)) return 'asphalt';
+  // sidewalks along the two main streets
+  if ((Math.abs(z) > 4 && Math.abs(z) < 6) || (Math.abs(x) > 4 && Math.abs(x) < 6)) return 'tile';
+  const f = FOOTPRINTS.find((p) => x > p.x0 && x < p.x1 && z > p.z0 && z < p.z1);
+  return f && f.kind !== 'deco' && f.kind !== 'field' ? 'tile' : 'dirt';
+}

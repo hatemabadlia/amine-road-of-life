@@ -220,6 +220,7 @@ export function DayNight() {
     }
     if (starsRef.current) starsRef.current.visible = glow > 0.6;
     sound.setNight(glow > 0.6);
+    sound.updatePlaces(livePose.x, livePose.z, hour, performance.now() / 1000);
   });
 
   const mapSize = quality === 'high' ? 2048 : 1024;
