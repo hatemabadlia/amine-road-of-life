@@ -1,10 +1,10 @@
 // The neighbourhood: ground, streets, buildings with interiors, props and
 // all static colliders (inside one fixed rigid body for efficiency).
-import { memo, useMemo } from 'react';
+import { memo, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import { FOOTPRINTS, ROADS, WORLD_HALF } from './layout';
-import { facadeTexture, groundTexture, mat, PALETTE } from './materials';
+import { facadeMaterial, flatMat, groundTexture, mat, PALETTE, rng } from './materials';
 import { Bench, Box, Car, Cyl, Door, Flag, HidingRoof, Lamp, Palm, RoofKit, Sign, Tree, WallLine, Window } from './primitives';
 
 // ---------------------------------------------------------------------------
@@ -12,7 +12,8 @@ import { Bench, Box, Car, Cyl, Door, Flag, HidingRoof, Lamp, Palm, RoofKit, Sign
 // ---------------------------------------------------------------------------
 function Ground() {
   const dirt = useMemo(() => groundTexture('dirt', [40, 40]), []);
-  const asphalt = useMemo(() => groundTexture('asphalt', [1, 1]), []);
+  const roads = useMemo(() => ROADS.map(([x0, z0, x1, z1]) => mat('#ffffff', { map: groundTexture('asphalt', [(x1 - x0) / 8, (z1 - z0) / 8]), rough: 0.95 })), []);
+  const walks = useMemo(() => [groundTexture('sidewalk', [40, 0.5]), groundTexture('sidewalk', [0.5, 40])], []);
   return (
     <>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -21,7 +22,7 @@ function Ground() {
       </mesh>
       <CuboidCollider args={[130, 0.5, 130]} position={[0, -0.5, 0]} />
       {ROADS.map(([x0, z0, x1, z1], i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.015, (z0 + z1) / 2]} receiveShadow material={mat('#ffffff', { map: asphalt, rough: 0.95 })}>
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.015, (z0 + z1) / 2]} receiveShadow material={roads[i]}>
           <planeGeometry args={[x1 - x0, z1 - z0]} />
         </mesh>
       ))}
@@ -32,9 +33,15 @@ function Ground() {
         [-6, -80, -4, 80],
         [4, -80, 6, 80],
       ].map(([x0, z0, x1, z1], i) => (
-        <mesh key={`sw${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.025, (z0 + z1) / 2]} receiveShadow material={mat(PALETTE.sidewalk)}>
-          <planeGeometry args={[x1 - x0, z1 - z0]} />
-        </mesh>
+        <group key={`sw${i}`}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.025, (z0 + z1) / 2]} receiveShadow material={mat('#ffffff', { map: walks[i < 2 ? 0 : 1] })}>
+            <planeGeometry args={[x1 - x0, z1 - z0]} />
+          </mesh>
+          {/* kerb on the road side */}
+          <mesh position={i < 2 ? [(x0 + x1) / 2, 0.06, i === 0 ? z1 : z0] : [i === 2 ? x1 : x0, 0.06, (z0 + z1) / 2]} receiveShadow material={mat('#d9d2c4')}>
+            <boxGeometry args={i < 2 ? [x1 - x0, 0.12, 0.18] : [0.18, 0.12, z1 - z0]} />
+          </mesh>
+        </group>
       ))}
       {/* dashed centre line */}
       {Array.from({ length: 32 }, (_, i) => -78 + i * 5)
@@ -61,11 +68,10 @@ function Block({ x0, z0, x1, z1, h, wall, kit = true }: { x0: number; z0: number
   const w = x1 - x0;
   const d = z1 - z0;
   const floors = Math.max(1, Math.round(h / 3));
-  const texX = useMemo(() => facadeTexture(wall, floors, Math.max(1, Math.round(w / 3.2))), [wall, floors, w]);
-  const texZ = useMemo(() => facadeTexture(wall, floors, Math.max(1, Math.round(d / 3.2))), [wall, floors, d]);
+  const seed = Math.abs(Math.round(x0 * 7 + z0 * 13)) % 5;
+  const mx = useMemo(() => facadeMaterial(wall, floors, Math.max(1, Math.round(w / 3.2)), seed), [wall, floors, w, seed]);
+  const mz = useMemo(() => facadeMaterial(wall, floors, Math.max(1, Math.round(d / 3.2)), seed + 1), [wall, floors, d, seed]);
   const plain = mat(wall);
-  const mx = mat(wall, { map: texX });
-  const mz = mat(wall, { map: texZ });
   // box material order: +x, -x, +y, -y, +z, -z
   const mats = useMemo(() => [mz, mz, mat(PALETTE.roof), plain, mx, mx], [mx, mz, plain]);
   return (
@@ -88,7 +94,7 @@ function Home() {
   const W = PALETTE.wallCream;
   return (
     <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-20, 0.03, -18]} receiveShadow material={mat('#d6c7ad', { map: tiles })}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-20, 0.03, -18]} receiveShadow material={mat('#fbf6ee', { map: tiles })}>
         <planeGeometry args={[20, 20]} />
       </mesh>
       {/* outer walls */}
@@ -217,12 +223,12 @@ function Hanout() {
 }
 
 function Apartments() {
-  const tex = useMemo(() => facadeTexture(PALETTE.wallOchre, 3, 4), []);
+  const facade = useMemo(() => facadeMaterial(PALETTE.wallOchre, 3, 4, 3), []);
   return (
     <>
       <Block x0={24} z0={-28} x1={38} z1={-14} h={12} wall={PALETTE.wallOchre} />
       {/* upper floors over the entrance hall */}
-      <mesh position={[31, 7.5, -11]} castShadow receiveShadow material={mat(PALETTE.wallOchre, { map: tex })}>
+      <mesh position={[31, 7.5, -11]} castShadow receiveShadow material={facade}>
         <boxGeometry args={[14, 9, 6]} />
       </mesh>
       <CuboidCollider args={[7, 4.5, 3]} position={[31, 7.5, -11]} />
@@ -247,7 +253,7 @@ function Square() {
   const tiles = useMemo(() => groundTexture('tiles', [13, 11]), []);
   return (
     <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[59, 0.03, -19]} receiveShadow material={mat('#cdbfa6', { map: tiles })}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[59, 0.03, -19]} receiveShadow material={mat('#f6efe4', { map: tiles })}>
         <planeGeometry args={[26, 22]} />
       </mesh>
       {/* fountain */}
@@ -304,7 +310,7 @@ function Campus({ x0, x1, gateX, name, wall }: { x0: number; x1: number; gateX: 
   const courtyard = useMemo(() => groundTexture('tiles', [7, 5]), []);
   return (
     <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.03, 25]} receiveShadow material={mat('#d4c6ab', { map: courtyard })}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0.03, 25]} receiveShadow material={mat('#f3ece0', { map: courtyard })}>
         <planeGeometry args={[x1 - x0, 30]} />
       </mesh>
       <WallLine a={[x0, 10]} b={[x1, 10]} h={2.4} c={wall} gaps={[{ at: gateX, w: 4 }]} doorH={9} />
@@ -381,7 +387,7 @@ function Field() {
   );
   return (
     <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[25, 0.035, 27]} receiveShadow material={mat('#5c8f3c', { map: pitch })}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[25, 0.035, 27]} receiveShadow material={mat('#ffffff', { map: pitch })}>
         <planeGeometry args={[30, 30]} />
       </mesh>
       {line([25, 13.5], [26, 0.12], 'a')}
@@ -541,16 +547,16 @@ function DecoBlocks() {
 function StreetProps() {
   const palms: [number, number][] = [];
   for (let x = -70; x <= 70; x += 14) if (Math.abs(x) > 8 && Math.abs(x + 24) > 4) palms.push([x, 5.4]);
-  const lamps: [number, number][] = [];
-  for (let x = -75; x <= 75; x += 18) lamps.push([x, -5.4]);
-  for (let z = -70; z <= 70; z += 18) if (Math.abs(z) > 8) lamps.push([5.4, z]);
+  const lamps: { p: [number, number]; arm: [number, number] }[] = [];
+  for (let x = -75; x <= 75; x += 18) lamps.push({ p: [x, -5.4], arm: [0, 1] });
+  for (let z = -70; z <= 70; z += 18) if (Math.abs(z) > 8) lamps.push({ p: [5.4, z], arm: [-1, 0] });
   return (
     <>
       {palms.map((p) => (
         <Palm key={`p${p[0]}`} p={p} />
       ))}
-      {lamps.map((p) => (
-        <Lamp key={`l${p[0]}_${p[1]}`} p={p} />
+      {lamps.map(({ p, arm }) => (
+        <Lamp key={`l${p[0]}_${p[1]}`} p={p} arm={arm} />
       ))}
       <Car p={[-40, 2.6]} c="#b03a2e" />
       <Car p={[40, -2.6]} rotY={Math.PI} c="#ecf0f1" />
@@ -594,23 +600,53 @@ function Bounds() {
   );
 }
 
+/** Flat-topped mesa (like Djebel Dyr above Tébessa) with eroded sides and rock strata. */
+function mesaGeometry(seed: number, w: number, h: number): THREE.BufferGeometry {
+  const r = rng(seed);
+  const geo = new THREE.CylinderGeometry(w * 0.42, w, h, 18, 5).toNonIndexed();
+  const pos = geo.attributes.position;
+  const colors: number[] = [];
+  const strata = [new THREE.Color('#b8936b'), new THREE.Color('#a87f5a'), new THREE.Color('#c4a27a'), new THREE.Color('#9c7552'), new THREE.Color('#8f8a5e')];
+  const jitter = new Map<string, number>();
+  const tmp = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    // the same vertex must move the same way in every triangle
+    const key = `${x.toFixed(2)}|${y.toFixed(2)}|${z.toFixed(2)}`;
+    if (!jitter.has(key)) jitter.set(key, 0.82 + r() * 0.3);
+    const top = y > h / 2 - 0.01;
+    const k = top ? 1 : jitter.get(key)!;
+    pos.setXYZ(i, x * k, y + (top ? (r() - 0.5) * 0.6 : 0), z * k);
+    const t = (y + h / 2) / h;
+    tmp.copy(strata[Math.min(strata.length - 1, Math.floor(t * 4.99))]);
+    if (top) tmp.set('#8d8a5c');
+    tmp.offsetHSL(0, 0, (r() - 0.5) * 0.04);
+    colors.push(tmp.r, tmp.g, tmp.b);
+  }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.computeVertexNormals();
+  return geo;
+}
+
 function Backdrop() {
   const hills = useMemo(
     () =>
-      Array.from({ length: 14 }, (_, i) => {
-        const a = (i / 14) * Math.PI * 2;
-        const r = 150 + (i % 3) * 20;
-        return { x: Math.cos(a) * r, z: Math.sin(a) * r, h: 30 + ((i * 17) % 25), w: 40 + ((i * 13) % 30) };
+      Array.from({ length: 16 }, (_, i) => {
+        const a = (i / 16) * Math.PI * 2 + (i % 2) * 0.1;
+        const r = 150 + (i % 3) * 22;
+        const h = 22 + ((i * 17) % 22);
+        const w = 38 + ((i * 13) % 30);
+        return { x: Math.cos(a) * r, z: Math.sin(a) * r, h, geo: mesaGeometry(i + 1, w, h), rot: i * 1.3 };
       }),
     [],
   );
+  const rock = useMemo(() => new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 1 }), []);
   return (
     <>
       {hills.map((h, i) => (
-        <mesh key={i} position={[h.x, h.h / 2 - 2, h.z]} rotation={[0, i, 0]} material={mat(i % 2 ? '#b39a7a' : '#a68b6a')}>
-          {/* flat-topped mesas, like Djebel Dyr above Tébessa */}
-          <cylinderGeometry args={[h.w * 0.45, h.w, h.h * 0.55, 7]} />
-        </mesh>
+        <mesh key={i} position={[h.x, h.h / 2 - 2, h.z]} rotation={[0, h.rot, 0]} geometry={h.geo} material={rock} />
       ))}
       {/* low-detail rooftops ring beyond the playable area */}
       {Array.from({ length: 24 }, (_, i) => {
@@ -622,6 +658,64 @@ function Backdrop() {
           </mesh>
         );
       })}
+    </>
+  );
+}
+
+/** Dry-grass tufts and stones on bare ground (instanced, no colliders). */
+function Scatter() {
+  const { tufts, stones } = useMemo(() => {
+    const r = rng(42);
+    const free = (x: number, z: number) =>
+      !ROADS.some(([x0, z0, x1, z1]) => x > x0 - 2.5 && x < x1 + 2.5 && z > z0 - 2.5 && z < z1 + 2.5) &&
+      !FOOTPRINTS.some((f) => x > f.x0 - 1 && x < f.x1 + 1 && z > f.z0 - 1 && z < f.z1 + 1);
+    const tufts: [number, number, number, number][] = [];
+    const stones: [number, number, number, number][] = [];
+    for (let i = 0; i < 4000 && tufts.length < 900; i++) {
+      const x = (r() - 0.5) * 170;
+      const z = (r() - 0.5) * 170;
+      if (free(x, z)) tufts.push([x, z, 0.5 + r() * 0.9, r() * Math.PI]);
+    }
+    for (let i = 0; i < 2000 && stones.length < 160; i++) {
+      const x = (r() - 0.5) * 170;
+      const z = (r() - 0.5) * 170;
+      if (free(x, z)) stones.push([x, z, 0.12 + r() * 0.3, r() * Math.PI]);
+    }
+    return { tufts, stones };
+  }, []);
+  const tuftRef = useRef<THREE.InstancedMesh>(null);
+  const stoneRef = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const d = new THREE.Object3D();
+    const c = new THREE.Color();
+    const shades = ['#9aa05a', '#b3a964', '#7f8f4a', '#c2b077'];
+    tufts.forEach(([x, z, s, a], i) => {
+      d.position.set(x, 0.12 * s, z);
+      d.rotation.set(0, a, 0);
+      d.scale.set(s, s, s);
+      d.updateMatrix();
+      tuftRef.current!.setMatrixAt(i, d.matrix);
+      tuftRef.current!.setColorAt(i, c.set(shades[i % shades.length]));
+    });
+    stones.forEach(([x, z, s, a], i) => {
+      d.position.set(x, s * 0.3, z);
+      d.rotation.set(a, a * 2, 0);
+      d.scale.set(s * 1.3, s * 0.7, s);
+      d.updateMatrix();
+      stoneRef.current!.setMatrixAt(i, d.matrix);
+    });
+    tuftRef.current!.instanceMatrix.needsUpdate = true;
+    if (tuftRef.current!.instanceColor) tuftRef.current!.instanceColor.needsUpdate = true;
+    stoneRef.current!.instanceMatrix.needsUpdate = true;
+  }, [tufts, stones]);
+  return (
+    <>
+      <instancedMesh ref={tuftRef} args={[undefined, undefined, tufts.length]} material={flatMat('#ffffff')} receiveShadow>
+        <coneGeometry args={[0.22, 0.32, 5]} />
+      </instancedMesh>
+      <instancedMesh ref={stoneRef} args={[undefined, undefined, stones.length]} material={flatMat('#a99a85')} castShadow receiveShadow>
+        <dodecahedronGeometry args={[1, 0]} />
+      </instancedMesh>
     </>
   );
 }
@@ -648,6 +742,7 @@ export const World = memo(function World({ age }: { age: number }) {
         <Bounds />
       </RigidBody>
       <Backdrop />
+      <Scatter />
     </>
   );
 });
