@@ -1,7 +1,7 @@
 // Small authoring helpers so chapter files read like a script.
-import type { Choice, ChoiceStep, CondStep, Effects, FxStep, Line, LateRule, Objective, Step, Tone } from '../../types/game';
+import type { Choice, ChoiceStep, CondStep, Effects, FxStep, Line, LateRule, Objective, Shot, Step, Tone } from '../../types/game';
 
-type LineExtra = { if?: string; fx?: Effects; set?: string[] };
+type LineExtra = { if?: string; fx?: Effects; set?: string[]; cam?: Shot };
 
 export const say = (s: string, t: string, extra: LineExtra = {}): Line => ({ s, t, ...extra });
 export const N = (t: string, extra?: LineExtra) => say('narrator', t, extra);

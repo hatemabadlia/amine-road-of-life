@@ -22,10 +22,15 @@ export type Effects = Partial<Record<StatKey | 'money' | 'savings', number>>;
 /** How a choice reads morally — used by AI playthrough strategies and analytics, never shown to the player. */
 export type Tone = 'good' | 'bad' | 'neutral' | 'refuse' | 'honest' | 'lie' | 'help';
 
+/** Optional camera shot for a dialogue line (cinematic moments). */
+export type Shot = 'close' | 'low' | 'high' | 'wide';
+
 export interface Line {
   /** speaker id: character id, 'amine' or 'narrator' */
   s: string;
   t: string;
+  /** camera shot for this line (default: over-the-shoulder on the speaker) */
+  cam?: Shot;
   if?: string;
   fx?: Effects;
   set?: string[];

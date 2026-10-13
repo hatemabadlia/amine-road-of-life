@@ -8,6 +8,7 @@ import {
   type GameState,
   type Line,
   type Objective,
+  type Shot,
   type Step,
   type Tone,
 } from '../../types/game';
@@ -231,7 +232,7 @@ export function finishChapter(state: GameState, chapters: Chapter[], evaluateEnd
 // ---------------------------------------------------------------------------
 
 export type DialogueView =
-  | { kind: 'line'; speaker: string; text: string }
+  | { kind: 'line'; speaker: string; text: string; cam?: Shot }
   | { kind: 'choice'; id: string; options: { index: number; text: string; tone?: Tone }[] };
 
 interface Frame {
@@ -270,7 +271,7 @@ export class DialogueRunner {
       if (isLine(step)) {
         if (!evalCond(state, step.if)) continue;
         this.changes.push(...applyFx(state, step.fx, step.set));
-        return { kind: 'line', speaker: step.s, text: step.t };
+        return { kind: 'line', speaker: step.s, text: step.t, cam: step.cam };
       }
       if (isChoice(step)) {
         const visible = step.choose.filter((c) => evalCond(state, c.if));

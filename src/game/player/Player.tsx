@@ -7,7 +7,7 @@ import { amineLook, type HumanoidHandle } from './Humanoid';
 import { Character } from './SkinnedHuman';
 import { input, moveVector } from './input';
 import { livePose, useGame } from '../store';
-import { camState } from '../engine/refs';
+import { camState, cine } from '../engine/refs';
 import { sound } from '../audio/sound';
 import { surfaceAt } from '../world/layout';
 import { WORLD_HALF } from '../world/layout';
@@ -131,6 +131,8 @@ export function Player() {
 
     const hs = Math.hypot(m.x, m.z) / Math.max(dt, 1e-4);
     if (hs > 0.3 && (mv.x || mv.y)) facing.current = lerpAngle(facing.current, Math.atan2(vel.current.x, vel.current.z), 1 - Math.exp(-12 * dt));
+    // in a conversation Amine turns to face the person he talks to
+    else if (st.dialogue && cine.partner) facing.current = lerpAngle(facing.current, Math.atan2(cine.partner.x - nx, cine.partner.z - nz), 1 - Math.exp(-6 * dt));
     if (visual.current) visual.current.rotation.y = facing.current;
     if (model.current) {
       model.current.speed = hs;

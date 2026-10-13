@@ -9,6 +9,16 @@ export const npcPositions = new Map<string, THREE.Vector3>();
 /** Camera orbit state (yaw 0 = camera on +z side looking toward -z). */
 export const camState = { yaw: Math.PI, pitch: 0.32, dist: 5.2 };
 
+/** Cinematic dialogue state shared by the camera, the player and the effects. */
+export const cine = {
+  /** head position of the character Amine is talking to (null outside dialogue) */
+  partner: null as THREE.Vector3 | null,
+  /** world point the depth of field focuses on */
+  focus: null as THREE.Vector3 | null,
+  /** 0..1 how much the dialogue look (letterbox, blur) is applied */
+  amount: 0,
+};
+
 export const ballRef: { body: RapierRigidBody | null } = { body: null };
 
 export interface Focus {

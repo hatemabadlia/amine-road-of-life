@@ -173,9 +173,10 @@ function SaveFlash() {
 
 export function HUD() {
   const card = useGame((s) => s.card);
+  const talking = useGame((s) => !!s.dialogue);
   if (card) return null;
   return (
-    <div className="hud">
+    <div className={`hud ${talking ? 'cine' : ''}`}>
       <Mission />
       <Status />
       <div className="hud-buttons">

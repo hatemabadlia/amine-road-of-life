@@ -231,6 +231,68 @@ select:focus-visible {
 .hud > * {
   pointer-events: auto;
 }
+/* during conversations the HUD steps aside for the letterbox */
+.hud .mission,
+.hud .status,
+.hud .minimap,
+.hud .hud-buttons {
+  transition: opacity 0.4s ease;
+}
+.hud.cine .mission,
+.hud.cine .status,
+.hud.cine .minimap,
+.hud.cine .hud-buttons {
+  opacity: 0;
+  pointer-events: none;
+}
+.letterbox {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.letterbox i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  background: #000;
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.letterbox i:first-child {
+  top: 0;
+}
+.letterbox i:last-child {
+  bottom: 0;
+}
+.letterbox.on i {
+  height: 9vh;
+}
+.fade-in {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+  z-index: 40;
+  animation: fade-from-black 1.4s ease-out forwards;
+}
+@keyframes fade-from-black {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    animation-duration: 0.01s;
+  }
+  .letterbox i {
+    transition: none;
+  }
+}
 .mission {
   position: absolute;
   top: 14px;

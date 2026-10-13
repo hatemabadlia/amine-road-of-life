@@ -44,6 +44,27 @@ class CanvasBoundary extends Component<{ children: ReactNode }, { error: string 
   }
 }
 
+/** Letterbox bars during conversations and a fade from black when a chapter starts. */
+function Cinema() {
+  const talking = useGame((s) => !!s.dialogue);
+  const card = useGame((s) => s.card);
+  const [fadeKey, setFadeKey] = useState(0);
+  const [prevCard, setPrevCard] = useState(card);
+  if (card !== prevCard) {
+    setPrevCard(card);
+    if (!card) setFadeKey((k) => k + 1);
+  }
+  return (
+    <>
+      <div className={`letterbox ${talking ? 'on' : ''}`} aria-hidden>
+        <i />
+        <i />
+      </div>
+      {fadeKey > 0 && <div className="fade-in" key={fadeKey} aria-hidden />}
+    </>
+  );
+}
+
 export function GameScreen() {
   const [ready, setReady] = useState(false);
   const [webgl] = useState(hasWebGL);
@@ -134,6 +155,7 @@ export function GameScreen() {
       )}
       {ready && (
         <>
+          <Cinema />
           <HUD />
           {isTouch() && <TouchControls />}
           <Dialogue />
