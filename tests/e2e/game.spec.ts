@@ -322,9 +322,57 @@ test('chapter 41: volunteering day at Dar Chabab — sign up, clean-up team, cer
       await page.waitForTimeout(200);
     }
   }
-  expect(visited).toEqual(expect.arrayContaining(['to_dar', 'nasser_signup', 'team_clean_kit', 'team_clean_alley', 'nasser_thanks']));
+  expect(visited).toEqual(expect.arrayContaining(['to_dar', 'hassane_signup', 'team_clean_kit', 'team_clean_alley', 'hassane_thanks']));
   expect(visited).not.toContain('club');
   const g = await page.evaluate(() => window.__AMINE__.state().game);
   expect(g.chapter).toBe(42);
+  expect(g.flags.volunteer_spirit).toBe(true);
+});
+
+test('chapter 3: volunteering starts at age 10 — Hassane invites Amine and he plants his first tree', async ({ page }) => {
+  test.setTimeout(300_000);
+  await startNewGame(page);
+  await page.evaluate(() => window.__AMINE__.jumpTo(3));
+  const visited: string[] = [];
+  for (let guard = 0; guard < 150; guard++) {
+    const st = await page.evaluate(() => {
+      const s = window.__AMINE__.state();
+      return { card: s.card, view: s.dialogue?.view ?? null, ch: s.game.chapter };
+    });
+    if (st.ch !== 3) break;
+    if (st.card) {
+      await page.waitForTimeout(950);
+      await page.getByTestId('start-chapter').click();
+      continue;
+    }
+    if (st.view) {
+      // first option everywhere: includes "yes, I want to plant a tree"
+      if (st.view.kind === 'choice') await page.getByTestId('choice-0').click();
+      else {
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(40);
+        if ((await page.evaluate(() => window.__AMINE__.state().dialogue?.view.kind ?? null)) === 'line') await page.keyboard.press('Enter');
+      }
+      await page.waitForTimeout(80);
+      continue;
+    }
+    const o = await page.evaluate(() => window.__AMINE__.objective());
+    if (!o) {
+      await page.waitForTimeout(150);
+      continue;
+    }
+    visited.push(o.id);
+    await page.evaluate((t) => window.__AMINE__.goTo(t), o.target);
+    await page.waitForTimeout(600);
+    if (o.type !== 'goto' && !(await page.evaluate(() => !!window.__AMINE__.state().dialogue))) {
+      await expect(page.getByTestId('prompt')).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press('KeyE');
+      await page.waitForTimeout(200);
+    }
+  }
+  expect(visited).toEqual(expect.arrayContaining(['hassane_invite', 'first_tree']));
+  const g = await page.evaluate(() => window.__AMINE__.state().game);
+  expect(g.chapter).toBe(4);
+  expect(g.flags.planted_tree).toBe(true);
   expect(g.flags.volunteer_spirit).toBe(true);
 });

@@ -175,8 +175,8 @@ export const CHARACTERS: Character[] = [
     ambient: [{ lines: ['تعال يا وليدي، اقعد حدايا.', 'الزيتونة كيما الراجل، تكبر بالصبر.'] }],
   },
   {
-    id: 'nasser',
-    name: 'المنشّط ناصر',
+    id: 'hassane',
+    name: 'المنشّط حسان',
     role: 'منشّط في دار الشباب',
     home: [13.2, -72.2],
     color: '#27ae60',

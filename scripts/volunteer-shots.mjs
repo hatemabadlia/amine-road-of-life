@@ -10,7 +10,7 @@ await page.click('[data-testid=new-game]');
 await page.waitForSelector('[data-testid=chapter-card]', { timeout: 180000 });
 await page.evaluate(() => window.__AMINE__.jumpTo(41));
 const pick = { join_club: 1, vol_team: 1 };
-const shots = new Set(['nasser_signup', 'team_clean_kit', 'team_clean_alley', 'nasser_thanks']);
+const shots = new Set(['hassane_signup', 'team_clean_kit', 'team_clean_alley', 'hassane_thanks']);
 for (let guard = 0; guard < 100; guard++) {
   const st = await page.evaluate(() => { const s = window.__AMINE__.state(); return { card: s.card, v: s.dialogue?.view ?? null, ch: s.game.chapter }; });
   if (st.ch !== 41) break;

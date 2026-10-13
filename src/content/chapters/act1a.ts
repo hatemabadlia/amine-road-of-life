@@ -387,9 +387,9 @@ const ch3: Chapter = {
   title: 'صحاب الحومة',
   mission: 'ثلاثة طرقات',
   age: 10,
-  summary: 'في الحومة كاين وليد اللي يحب الكورة والقراية، مراد صاحب الطفولة، وكمال الكبير تاع العمارة.',
+  summary: 'في الحومة كاين وليد اللي يحب الكورة والقراية، مراد صاحب الطفولة، كمال الكبير تاع العمارة، وحسان تاع دار الشباب.',
   start: { spot: 'home_door', time: '14:00' },
-  cast: { mourad: 'crossroads', kamel: 'stairs', walid: 'football', coach: 'football' },
+  cast: { mourad: 'crossroads', kamel: 'stairs', walid: 'football', coach: 'football', hassane: 'dar_chabab_front' },
   opening: [N('العشية بعد القراية. الحومة عندها ثلاثة طرقات، وكل طريق فيه صاحب.')],
   objectives: [
     talk('mourad_corner', 'مراد في القاطعة', 'mourad', [
@@ -462,6 +462,31 @@ const ch3: Chapter = {
       ),
       pass(90),
     ]),
+    // ---- the first volunteering: tree planting at Dar Chabab ------------------
+    talk('hassane_invite', 'المنشّط حسان يوزّع أوراق قدام دار الشباب', 'hassane', [
+      say('hassane', 'السلام عليكم يا البطل! أنا حسان، منشّط في دار الشباب. هاك ورقة.'),
+      N('على الورقة: "حملة التشجير — كل طفل يغرس شجرة ويكتب عليها اسمو".'),
+      say('hassane', 'اليوم العشية في الساحة اللي ورا. ما تحتاج حتى حاجة: غير يديك وقلبك.'),
+      choose(
+        'first_volunteer',
+        opt('نجي! نحب نغرس شجرة باسمي.', 'help', { set: ['volunteer_kid'], fx: { confidence: 2 } }),
+        opt('مرة أخرى إن شاء الله.', 'neutral', { then: [say('hassane', 'الباب مفتوح ديما. الشجرة تستنّاك.')] }),
+      ),
+    ]),
+    act(
+      'first_tree',
+      'اغرس شجرتك الأولى في ساحة دار الشباب',
+      'garden_plot',
+      [
+        N('حفرة صغيرة، شتلة زيتون، وبيدون ما. أطفال الحومة كامل يحفرو ويضحكو.'),
+        say('hassane', 'شوف: الشجرة كيما الإنسان. تحتاج ما، شمس، وواحد يتفكّرها.'),
+        N('أمين كتب على لوحة صغيرة بخط معوّج: "شجرة أمين — 10 سنين". وحطها حداها.', { cam: 'close' }),
+        say('hassane', 'كل عام تجي تشوفها. نشوفو شكون يكبر أكثر: أنت ولا هي!'),
+        fx({ confidence: 4, parents: 2, health: 1 }, { set: ['volunteer_spirit', 'planted_tree'] }),
+        pass(45),
+      ],
+      { if: 'volunteer_kid' },
+    ),
     goto('home_eve', 'ارجع للدار', 'home_living', {
       deadline: '18:30',
       onLate: { fx: { anger: 6, trust: -2 }, note: 'رجعت مع الليل.' },
@@ -475,9 +500,16 @@ const ch3: Chapter = {
         B('ابعد على هذاك الشاب. ويعطيك الصحة خاطر قلتلي.', { fx: { trust: 5, honesty: 3 } }),
       ]),
       when('refused_kamel', [A('كمال حب يبعثني نجيبلو الدخان، قلتلو لا.'), B('هذا هو! راني فخور بيك.', { fx: { trust: 5, confidence: 2 } })]),
+      when('volunteer_kid', [
+        A('وبابا! غرست شجرة في دار الشباب، وكتبت عليها اسمي!'),
+        B('اللي يغرس شجرة، يغرس الخير في الحومة كاملة. جدّك يفرح كي يسمع.', { fx: { trust: 2, parents: 3 } }),
+      ]),
     ]),
   ],
-  closing: [N('ثلاثة صحاب، ثلاثة طرقات. أمين باقي صغير، بصح الاختيار بدا من اليوم.')],
+  closing: [
+    N('ثلاثة صحاب، ثلاثة طرقات. أمين باقي صغير، بصح الاختيار بدا من اليوم.'),
+    when('volunteer_kid', [N('وطريق رابع، صغير كيما شتلة: في ساحة دار الشباب، شجرة عليها اسم أمين.')]),
+  ],
 };
 
 const ch4: Chapter = {
