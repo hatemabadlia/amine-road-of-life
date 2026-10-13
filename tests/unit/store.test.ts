@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { memoryStorage, loadSave } from '../../src/game/save/save';
 import { activeObjective, setStorage, useGame, livePose } from '../../src/game/store';
 import type { KV } from '../../src/game/save/save';
+import { createState, startChapter } from '../../src/game/story/engine';
+import { CHAPTERS } from '../../src/content/chapters';
+import { spotById } from '../../src/game/world/layout';
 
 let kv: KV;
 
@@ -152,5 +155,35 @@ describe('runtime store', () => {
     expect(st.card).toBe(true);
     expect(st.snapshots[2]).toBeDefined();
     expect(st.game!.completed).toEqual([1]);
+  });
+
+  it('a bus-ride objective takes Amine (and Mourad) across town to the cybercafé', () => {
+    const g = createState();
+    startChapter(g, CHAPTERS, 16);
+    useGame.setState({ screen: 'game', game: g, card: true, dialogue: null, ride: null });
+    // play the chapter, always picking the first option ("let's go") until the ride
+    for (let guard = 0; guard < 60 && !useGame.getState().ride; guard++) {
+      const st = useGame.getState();
+      if (st.dialogue) {
+        finishDialogue(true);
+        continue;
+      }
+      if (st.card) {
+        st.dismissCard();
+        continue;
+      }
+      const o = activeObjective(st.game);
+      if (!o) break;
+      if (o.type === 'goto') st.arriveAt(o.target);
+      else st.interact(o.target, o.type === 'talk' ? 'npc' : 'object');
+    }
+    const st = useGame.getState();
+    expect(st.game!.flags.skipped_ch16).toBe(true);
+    expect(st.ride?.to).toBe('cyber_front');
+    const dest = spotById.get('cyber_front')!;
+    expect(st.spawn).toMatchObject({ x: dest.x, z: dest.z });
+    expect(activeObjective(st.game)!.target).toBe('cyber_pc');
+    st.endRide();
+    expect(useGame.getState().ride).toBeNull();
   });
 });

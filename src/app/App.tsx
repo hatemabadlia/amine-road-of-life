@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { useGame } from '../game/store';
+import { chapterOf, useGame } from '../game/store';
 import { Menu } from './Menu';
 import { EndingScreen } from './Ending';
 import { sound } from '../game/audio/sound';
@@ -41,6 +41,7 @@ export function App() {
         hour: ((g?.time ?? 600) % 1440) / 60,
         risk: g?.stats.risk ?? 0,
         ending: st.screen === 'ending',
+        event: g ? chapterOf(g).event : undefined,
       });
       music.play(theme, st.screen === 'game' ? (g?.chapter ?? 1) : 0);
       music.setDuck(!!st.dialogue);

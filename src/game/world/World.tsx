@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import { FOOTPRINTS, ROADS, WORLD_HALF } from './layout';
 import { facadeMaterial, flatMat, groundTexture, mat, PALETTE, rng } from './materials';
+import { Districts } from './Districts';
 import { Bench, Box, Car, Cyl, Door, Flag, HidingRoof, Lamp, Palm, RoofKit, Sign, Tree, WallLine, Window } from './primitives';
 
 // ---------------------------------------------------------------------------
@@ -64,7 +65,7 @@ function Ground() {
 // ---------------------------------------------------------------------------
 // Generic solid apartment block with textured facade
 // ---------------------------------------------------------------------------
-function Block({ x0, z0, x1, z1, h, wall, kit = true }: { x0: number; z0: number; x1: number; z1: number; h: number; wall: string; kit?: boolean }) {
+export function Block({ x0, z0, x1, z1, h, wall, kit = true }: { x0: number; z0: number; x1: number; z1: number; h: number; wall: string; kit?: boolean }) {
   const w = x1 - x0;
   const d = z1 - z0;
   const floors = Math.max(1, Math.round(h / 3));
@@ -188,7 +189,7 @@ function Neighbor() {
 // ---------------------------------------------------------------------------
 // Shops
 // ---------------------------------------------------------------------------
-function Hanout() {
+function Hanout({ age }: { age: number }) {
   return (
     <>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[13, 0.03, -13]} receiveShadow material={mat('#cfc3ad')}>
@@ -199,8 +200,10 @@ function Hanout() {
       <WallLine a={[8, -18]} b={[8, -8]} c={PALETTE.wallWhite} />
       <WallLine a={[18, -18]} b={[18, -8]} c={PALETTE.wallWhite} />
       <HidingRoof x0={8} z0={-18} x1={18} z1={-8} y={3.2} />
-      <Sign p={[13, 3.6, -7.84]} text="حانوت عمي صالح — مواد غذائية" w={6} h={0.9} bg="#1d6b3a" />
-      <mesh position={[13, 2.75, -7.3]} rotation={[0.5, 0, 0]} material={mat('#c0392b', { side: THREE.DoubleSide })}>
+      {/* the shop gets repainted as the years pass, and starts selling phone credit */}
+      <Sign p={[13, 3.6, -7.84]} text="حانوت عمي صالح — مواد غذائية" w={6} h={0.9} bg={age >= 14 ? '#1f4e79' : '#1d6b3a'} />
+      {age >= 16 && <Sign p={[16.6, 2.2, -7.86]} text="Flexy فليكسي" w={1.4} h={0.5} bg="#f1c40f" fg="#111" />}
+      <mesh position={[13, 2.75, -7.3]} rotation={[0.5, 0, 0]} material={mat(age >= 14 ? '#2471a3' : '#c0392b', { side: THREE.DoubleSide })}>
         <planeGeometry args={[6, 1.3]} />
       </mesh>
       <Box p={[13, 0.5, -15.5]} s={[5, 1, 0.7]} c="#9c6b3f" col />
@@ -221,6 +224,9 @@ function Hanout() {
       {/* the alley behind */}
       <WallLine a={[18, -26]} b={[24, -26]} c="#cdbfa6" h={2.6} />
       <Sign p={[21, 1.5, -25.86]} text="الحومة ما تنساش" w={3.2} h={0.9} bg="#3b3b3b" fg="#ff6b6b" />
+      {/* graffiti accumulates on the alley wall over the years */}
+      {age >= 13 && <Sign p={[19.4, 1.2, -25.85]} text="USMT" w={1.4} h={0.6} bg="#3b3b3b" fg="#2ecc71" />}
+      {age >= 16 && <Sign p={[22.7, 1.9, -25.85]} text="1 2 3 Viva l'Algérie" w={1.6} h={0.4} bg="#3b3b3b" fg="#f5f5f5" />}
     </>
   );
 }
@@ -527,7 +533,7 @@ function Grandpa() {
 
 function DecoBlocks() {
   const colours = [PALETTE.wallWhite, PALETTE.wallPink, PALETTE.wallBlue, PALETTE.wallCream, PALETTE.wallOchre];
-  const deco = FOOTPRINTS.filter((f) => f.kind === 'deco' && !['neighbor1', 'apartments'].includes(f.id));
+  const deco = FOOTPRINTS.filter((f) => f.kind === 'deco' && !['neighbor1', 'neighbor2', 'apartments'].includes(f.id));
   return (
     <>
       {deco.flatMap((f, i) => {
@@ -539,9 +545,7 @@ function DecoBlocks() {
           <Block key={`${f.id}b`} x0={mid + 0.5} z0={f.z0} x1={f.x1} z1={f.z1} h={9 + ((i * 5) % 6)} wall={colours[(i + 2) % colours.length]} />,
         ];
       })}
-      {/* more houses to fill the streets */}
-      <Block x0={-72} z0={48} x1={-50} z1={66} h={9} wall={PALETTE.wallCream} />
-      <Block x0={48} z0={48} x1={72} z1={66} h={7} wall={PALETTE.wallWhite} />
+      {/* (the hospital and the municipal stadium now stand where filler blocks used to be) */}
       <Block x0={48} z0={24} x1={62} z1={26} h={1.6} wall="#bcae98" kit={false} />
     </>
   );
@@ -739,7 +743,7 @@ export const World = memo(function World({ age }: { age: number }) {
         <Ground />
         <Home />
         <Neighbor />
-        <Hanout />
+        <Hanout age={age} />
         <Apartments />
         <Square />
         <Campus x0={-38} x1={-10} gateX={-24} name="مدرسة ابن باديس الابتدائية" wall={PALETTE.wallOchre} />
@@ -751,6 +755,7 @@ export const World = memo(function World({ age }: { age: number }) {
         <Grandpa />
         <DecoBlocks />
         <StreetProps />
+        <Districts age={age} />
         <Bounds />
       </RigidBody>
       <Backdrop />

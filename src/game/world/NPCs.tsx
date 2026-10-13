@@ -38,7 +38,7 @@ function nameTexture(name: string, color: string) {
 /** Characters who are busy with their hands when standing at their usual place. */
 const WORKERS = new Set(['bachir', 'jeddi']);
 
-function NPC({ id, x, z }: { id: string; x: number; z: number }) {
+function NPC({ id, x, z, lying = false }: { id: string; x: number; z: number; lying?: boolean }) {
   const ch = characterById.get(id)!;
   const group = useRef<THREE.Group>(null);
   const model = useRef<HumanoidHandle>(null);
@@ -74,7 +74,8 @@ function NPC({ id, x, z }: { id: string; x: number; z: number }) {
       agent.z = z;
       agent.path = null;
     };
-    if (!nav.ready || (unseen(agent.x, agent.z) && unseen(x, z))) return snap();
+    // companions on the bus arrive with Amine
+    if (!nav.ready || useGame.getState().ride || (unseen(agent.x, agent.z) && unseen(x, z))) return snap();
     if (!walkTo(agent, x, z) || !agent.path) return snap();
     const len = pathLength([agent.x, agent.z], agent.path);
     if (len > 140) return snap();
@@ -92,12 +93,20 @@ function NPC({ id, x, z }: { id: string; x: number; z: number }) {
     const walking = !arrived(agent);
     if (walking && !frozen && !waiting) stepAgent(agent, dt);
     else agent.speed = 0;
-    if ((!walking || waiting) && d < 5) face(agent, livePose.x, livePose.z, dt);
-    body.current?.setNextKinematicTranslation({ x: agent.x, y: 0.9 * ch.look.scale, z: agent.z });
-    head.set(agent.x, h * 0.85, agent.z);
-    if (group.current) {
-      group.current.position.set(agent.x, 0, agent.z);
-      group.current.rotation.y = agent.yaw;
+    if ((!walking || waiting) && d < 5 && !lying) face(agent, livePose.x, livePose.z, dt);
+    if (lying && !walking) {
+      // in bed: feet toward the room, head on the pillow (+z)
+      body.current?.setNextKinematicTranslation({ x: agent.x, y: -20, z: agent.z });
+      head.set(agent.x, 1.0, agent.z + 0.7);
+      group.current?.position.set(agent.x, 0.78, agent.z - 0.95);
+      group.current?.rotation.set(Math.PI / 2, 0, 0);
+    } else {
+      body.current?.setNextKinematicTranslation({ x: agent.x, y: 0.9 * ch.look.scale, z: agent.z });
+      head.set(agent.x, h * 0.85, agent.z);
+      if (group.current) {
+        group.current.position.set(agent.x, 0, agent.z);
+        group.current.rotation.set(0, agent.yaw, 0);
+      }
     }
     if (model.current) {
       model.current.speed = agent.speed;
@@ -129,13 +138,15 @@ export function StoryNPCs() {
   const doneCount = useGame((s) => s.game?.done.length ?? 0);
   const placements = useMemo(() => {
     const g = useGame.getState().game;
-    return g ? castPositions(chapterOf(g), g) : [];
+    if (!g) return [];
+    const ch = chapterOf(g);
+    return castPositions(ch, g).map((p) => ({ ...p, lying: !!ch.lying?.includes(p.id) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId, doneCount]);
   return (
     <>
       {placements.map((p) => (
-        <NPC key={`${chapterId}:${p.id}`} id={p.id} x={p.x} z={p.z} />
+        <NPC key={`${chapterId}:${p.id}`} id={p.id} x={p.x} z={p.z} lying={p.lying} />
       ))}
     </>
   );

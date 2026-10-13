@@ -66,11 +66,11 @@ const ch59: Chapter = {
   cast: { bachir: 'workshop', mustapha: 'training_center' },
   opening: [N('ثمنطاش سنة. النهار اللي كل شي يستنّاه.'), M('أمين، كول حاجة قبل ما تخرج. ربي يوفقك.')],
   objectives: [
-    goto('to_exam_study', 'روح لمركز الامتحان — الثانوية', 'lycee_class', { if: 'path_study', deadline: '08:00', onLate: { fx: { grades: -5 }, note: 'وصلت متأخر للبكالوريا!' } }),
+    goto('to_exam_study', 'روح لمركز الامتحان — قاعة البكالوريا', 'exam_hall', { if: 'path_study', deadline: '08:00', onLate: { fx: { grades: -5 }, note: 'وصلت متأخر للبكالوريا!' } }),
     act(
       'bac',
       'البكالوريا — اقعد في بلاصتك',
-      'lycee_desk',
+      'exam_desk',
       [
         N('الورقة قدامك. الرياضيات. الفيزياء. الفلسفة.'),
         when('cheated', [N('الأسئلة اللي شريتهم من سفيان... ما كانوش هوما. كانت حيلة.'), fx({ grades: -8 })]),
@@ -302,8 +302,8 @@ const ch64: Chapter = {
   summary: 'عمي صالح في السبيطار. الحانوت مسكّر، والحومة بلا خبز الصباح.',
   start: { spot: 'hanout_front', time: '07:00' },
   allowance: false,
-  absent: ['salah'],
-  cast: { fatiha: 'hanout_front' },
+  cast: { fatiha: 'hanout_front', salah: 'hospital_bed' },
+  lying: ['salah'],
   opening: [N('الحانوت مسكّر. لأول مرة من ثلاثين سنة.')],
   objectives: [
     talk('fatiha', 'خالتي فتيحة', 'fatiha', [
@@ -343,13 +343,13 @@ const ch64: Chapter = {
       ],
       { if: 'ran_hanout & yacine_ally' },
     ),
-    goto('hospital', 'العشية — زور عمي صالح (المركز الصحي في الطرف الفوقاني)', 'center', { if: 'ran_hanout' }),
+    goto('hospital', 'العشية — زور عمي صالح في السبيطار', 'hospital_front', { if: 'ran_hanout' }),
     talk(
       'salah_visit',
-      'عمي صالح',
-      'samia',
+      'عمي صالح — غرفة المرضى',
+      'salah',
       [
-        say('samia', 'عمي صالح في الغرفة الثالثة. قلت نسلّم عليك، المركز حدا قسم القلب.'),
+        N('الفرملية قالت: "الغرفة اللخرانية. ما تطوّلش، راه عيان."', { cam: 'wide' }),
         N('عمي صالح في الفراش. يضحك كي يشوف أمين.'),
         when('honest_shop', [N('أمين عطاه الكرّاس والكاسة. عمي صالح حسب... ودمّع.'), say('narrator', '"ثلاثين سنة نحسب. أول مرة واحد يجيبلي أكثر من واش نستنّى."'), fx({ trust: 4 }, { set: ['salah_heir'] })]),
         when('took_from_shop', [N('عمي صالح حسب. سكت. وقال: "يعطيك الصحة على الوقت."'), N('أمين ما قدرش يشوف في عينيه.')]),

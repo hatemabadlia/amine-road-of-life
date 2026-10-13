@@ -36,7 +36,8 @@ export function castPositions(ch: Chapter, state: GameState | null = null): Plac
     if (spotId) {
       const s = spotById.get(spotId)!;
       const a = hashAngle(c.id);
-      const r = Math.min(1.4, s.r * 0.6);
+      // big places (the square with its fountain, pitches) spread people further from the centre
+      const r = s.r >= 4 ? s.r * 0.6 : Math.min(1.4, s.r * 0.6);
       out.push({ id: c.id, x: s.x + Math.cos(a) * r, z: s.z + Math.sin(a) * r });
       continue;
     }

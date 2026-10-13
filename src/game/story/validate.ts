@@ -108,6 +108,7 @@ export function validateChapters(chapters: Chapter[], extraSteps: Step[][] = [])
     if (!ch.opening.length) err(ch.id, 'opening', 'Empty opening scene');
     if (!ch.closing.length) err(ch.id, 'closing', 'Empty closing scene');
     if (ch.objectives.length < 3) err(ch.id, 'objectives', 'Fewer than 3 objectives');
+    for (const npc of ch.lying ?? []) if (!characterById.has(npc)) err(ch.id, 'lying', `Unknown character "${npc}"`);
     for (const [npc, spot] of Object.entries(ch.cast ?? {})) {
       if (!characterById.has(npc)) err(ch.id, 'cast', `Unknown character "${npc}"`);
       if (!spotById.has(spot)) err(ch.id, 'cast', `Unknown spot "${spot}" for ${npc}`);
@@ -147,6 +148,7 @@ export function validateChapters(chapters: Chapter[], extraSteps: Step[][] = [])
         }
       }
       checkFx(ch.id, where, o.onLate?.fx);
+      if (o.ride && !spotById.has(o.ride)) err(ch.id, where, `Bus ride to unknown spot "${o.ride}"`);
       for (const m of o.moves ?? []) {
         if (!characterById.has(m.npc)) err(ch.id, where, `Move of unknown character "${m.npc}"`);
         if (!spotById.has(m.spot)) err(ch.id, where, `Move to unknown spot "${m.spot}"`);

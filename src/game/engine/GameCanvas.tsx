@@ -14,6 +14,8 @@ import { DayNight } from '../world/DayNight';
 import { Ball, StoryNPCs } from '../world/NPCs';
 import { Townsfolk } from '../world/Townsfolk';
 import { NavBuilder } from '../world/NavBuilder';
+import { EventDecor } from '../world/EventDecor';
+import { BusRide } from '../world/BusRide';
 import { useGame } from '../store';
 import { input } from '../player/input';
 
@@ -47,6 +49,8 @@ function Scene({ onReady }: { onReady: () => void }) {
         <ReadySignal cb={onReady} />
       </Physics>
       <ObjectiveMarker />
+      <EventDecor />
+      <BusRide />
     </>
   );
 }

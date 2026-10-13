@@ -82,7 +82,7 @@ export function Player() {
     if (!b || !col || !controller) return;
     const dt = Math.min(rawDt, 0.1);
     const st = useGame.getState();
-    const frozen = !!(st.dialogue || st.paused || st.card || st.screen !== 'game' || st.journal || st.bigMap);
+    const frozen = !!(st.ride || st.dialogue || st.paused || st.card || st.screen !== 'game' || st.journal || st.bigMap);
     const mv = frozen ? { x: 0, y: 0, run: false } : moveVector();
 
     // camera-relative direction

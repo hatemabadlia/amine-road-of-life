@@ -20,7 +20,7 @@ export function Interaction() {
     const st = useGame.getState();
     const g = st.game;
     const setFocus = useFocus.getState().set;
-    if (!g || st.screen !== 'game' || st.card || st.paused || st.dialogue) {
+    if (!g || st.screen !== 'game' || st.card || st.paused || st.dialogue || st.ride) {
       if (last.current) {
         last.current = '';
         setFocus(null);

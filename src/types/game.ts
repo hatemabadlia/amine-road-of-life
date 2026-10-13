@@ -98,6 +98,8 @@ export interface Objective {
   skipTo?: string;
   /** characters that relocate once this objective is completed */
   moves?: { npc: string; spot: string; if?: string }[];
+  /** after completion Amine takes the bus across town to this spot (a short ride sequence) */
+  ride?: string;
 }
 
 export interface Chapter {
@@ -115,6 +117,10 @@ export interface Chapter {
   cast?: Record<string, string>;
   /** characters hidden this chapter */
   absent?: string[];
+  /** characters lying down this chapter (e.g. in a hospital bed) */
+  lying?: string[];
+  /** a special event that dresses the neighbourhood (decorations, music) */
+  event?: 'wedding';
   opening: Step[];
   objectives: Objective[];
   closing: Step[];

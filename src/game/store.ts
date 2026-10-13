@@ -128,6 +128,8 @@ interface GameStore {
   toasts: Toast[];
   spawn: Spawn;
   saveFlash: number;
+  /** a bus ride in progress (visual sequence; Amine is already at the destination) */
+  ride: { to: string; started: number } | null;
 
   newGame: () => void;
   continueGame: () => void;
@@ -135,6 +137,7 @@ interface GameStore {
   loadSnapshotsForMenu: () => void;
   toMenu: () => void;
   dismissCard: () => void;
+  endRide: () => void;
   interact: (target: string, kind: 'npc' | 'object') => void;
   advance: () => void;
   choose: (index: number) => void;
@@ -278,6 +281,15 @@ export const useGame = create<GameStore>((set, get) => {
     const g = get().game!;
     const ch = chapterOf(g);
     completeObjective(g, ch, id);
+    const rideTo = ch.objectives.find((o) => o.id === id)?.ride;
+    if (rideTo) {
+      // the bus takes ~20 game minutes; Amine arrives at the destination
+      const s = spotById.get(rideTo)!;
+      g.time += 20;
+      livePose.x = s.x;
+      livePose.z = s.z;
+      set({ ride: { to: rideTo, started: performance.now() }, spawn: { x: s.x, z: s.z, yaw: Math.PI, nonce: ++spawnNonce } });
+    }
     sound.objective();
     const before = g.time;
     const next = resolveObjective(g, ch);
@@ -347,6 +359,8 @@ export const useGame = create<GameStore>((set, get) => {
     bigMap: false,
     toasts: [],
     spawn: { x: -25, z: -23, yaw: Math.PI, nonce: 0 },
+    ride: null,
+    endRide: () => set({ ride: null }),
     saveFlash: 0,
 
     newGame: () => {

@@ -4,8 +4,10 @@ import { activeObjective, livePose, useGame } from '../game/store';
 import { input } from '../game/player/input';
 import { npcPositions } from '../game/engine/refs';
 import { OBJECTS, SPOTS, objectById, spotById } from '../game/world/layout';
-import { findPath, nav, pathLength } from '../game/world/nav';
+import { cellOf, findPath, nav, pathLength, walkable } from '../game/world/nav';
 import { music } from '../game/audio/music';
+import { startChapter } from '../game/story/engine';
+import { CHAPTERS } from '../content/chapters';
 
 export function exposeTestHooks() {
   if (typeof window === 'undefined') return;
@@ -40,6 +42,30 @@ export function exposeTestHooks() {
       return p ? { points: p.length, length: pathLength([pa.x, pa.z], p) } : null;
     },
     music: () => ({ theme: music.current(), level: music.level() }),
+    /** jump to the start of any chapter (testing only) */
+    jumpTo: (id: number) => {
+      const g = useGame.getState().game;
+      if (!g) return false;
+      startChapter(g, CHAPTERS, id);
+      const sp = spotById.get(CHAPTERS.find((c) => c.id === id)!.start.spot)!;
+      useGame.setState({ game: { ...g }, card: true, dialogue: null, spawn: { x: sp.x, z: sp.z, yaw: Math.PI, nonce: Date.now() } });
+      return true;
+    },
+    /** ASCII view of the nav grid around a point (debugging) */
+    navAround: (x: number, z: number, r = 8) => {
+      const g = nav.grid;
+      if (!g) return '';
+      const rows: string[] = [];
+      for (let zz = z - r; zz <= z + r; zz += g.cell) {
+        let row = '';
+        for (let xx = x - r; xx <= x + r; xx += g.cell) {
+          const [cx, cz] = cellOf(g, xx, zz);
+          row += walkable(g, cx, cz) ? '.' : '#';
+        }
+        rows.push(row);
+      }
+      return rows.join('\n');
+    },
     places: () => [...SPOTS.map((s) => s.id), ...OBJECTS.map((o) => o.id)],
     interact: () => {
       input.interactQueued = true;

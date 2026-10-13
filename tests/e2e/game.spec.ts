@@ -12,6 +12,7 @@ declare global {
       route: (a: string, b: string) => { points: number; length: number } | null;
       places: () => string[];
       music: () => { theme: string | null; level: number };
+      jumpTo: (id: number) => boolean;
     };
   }
 }
@@ -194,4 +195,40 @@ test('music plays and follows the story: menu theme, then the childhood theme in
   await page.getByTestId('new-game').click();
   await expect(page.getByTestId('chapter-card')).toBeVisible({ timeout: 60_000 });
   await expect.poll(() => page.evaluate(() => window.__AMINE__.music().theme), { timeout: 10_000 }).toBe('childhood');
+});
+
+test('chapter 16: the bus ride plays and drops Amine at the cybercafé', async ({ page }) => {
+  test.setTimeout(240_000);
+  await startNewGame(page);
+  await page.evaluate(() => window.__AMINE__.jumpTo(16));
+  for (let guard = 0; guard < 60; guard++) {
+    if (await page.getByTestId('bus-ride').isVisible()) break;
+    const st = await page.evaluate(() => {
+      const s = window.__AMINE__.state();
+      return { card: s.card, dialogue: !!s.dialogue };
+    });
+    if (st.card) {
+      await page.waitForTimeout(950);
+      await page.getByTestId('start-chapter').click();
+      continue;
+    }
+    if (st.dialogue) {
+      await advanceDialogue(page);
+      continue;
+    }
+    const o = await page.evaluate(() => window.__AMINE__.objective());
+    if (!o) continue;
+    await page.evaluate((t) => window.__AMINE__.goTo(t), o.target);
+    await page.waitForTimeout(600);
+    if (o.type !== 'goto' && !(await page.evaluate(() => !!window.__AMINE__.state().dialogue))) {
+      await expect(page.getByTestId('prompt')).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press('KeyE');
+    }
+  }
+  await expect(page.getByTestId('bus-ride')).toBeVisible();
+  await expect(page.getByTestId('bus-ride')).toHaveCount(0, { timeout: 30_000 });
+  const o = await page.evaluate(() => window.__AMINE__.objective());
+  expect(o?.target).toBe('cyber_pc');
+  const p = await page.evaluate(() => window.__AMINE__.pose());
+  expect(Math.hypot(p.x - 5.8, p.z + 61.5)).toBeLessThan(3);
 });

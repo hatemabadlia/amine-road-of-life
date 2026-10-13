@@ -10,6 +10,7 @@ import { useRapier } from '@react-three/rapier';
 import { input } from '../player/input';
 import { livePose, useGame } from '../store';
 import { camState, cine, npcPositions } from '../engine/refs';
+import { rideCam } from '../world/BusRide';
 import type { Shot } from '../../types/game';
 
 const tmpTarget = new THREE.Vector3();
@@ -94,6 +95,13 @@ export function CameraRig() {
       // teleports (new chapter, continue, unstuck) snap the camera instead of sweeping through walls
       spawnNonce.current = st.spawn.nonce;
       init.current = false;
+    }
+    if (rideCam.active) {
+      // the bus ride is a scripted tracking shot; snap back to Amine afterwards
+      camera.position.copy(rideCam.pos);
+      camera.lookAt(rideCam.look);
+      init.current = false;
+      return;
     }
     const sens = st.settings.sensitivity;
     const age = st.game?.age ?? 10;

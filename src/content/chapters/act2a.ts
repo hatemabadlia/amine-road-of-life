@@ -400,6 +400,7 @@ const ch29: Chapter = {
   age: 14,
   summary: 'عرس في الحومة. الرجوع على العشرة. بصح الليل طويل.',
   start: { spot: 'home_living', time: '19:30' },
+  event: 'wedding',
   cast: { sofiane: 'square', mourad: 'square', walid: 'square' },
   opening: [N('عرس ولد الجيران في الساحة. الزرنة والبندير. بابا قال: "العشرة تكون في الدار."')],
   objectives: [

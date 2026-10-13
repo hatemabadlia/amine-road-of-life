@@ -34,6 +34,7 @@ type ObjExtra = {
   time?: number;
   skipTo?: string;
   moves?: { npc: string; spot: string; if?: string }[];
+  ride?: string;
 };
 
 export const goto = (id: string, text: string, target: string, extra: ObjExtra = {}): Objective => ({

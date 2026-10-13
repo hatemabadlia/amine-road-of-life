@@ -6,6 +6,7 @@ import { Dialogue } from '../game/ui/Dialogue';
 import { BigMap, ChapterCard, Journal, PauseMenu } from '../game/ui/Overlays';
 import { TouchControls } from '../game/ui/TouchControls';
 import { useGame } from '../game/store';
+import { spotById } from '../game/world/layout';
 import { clearInput, input, installKeyboard } from '../game/player/input';
 import { sound } from '../game/audio/sound';
 
@@ -46,7 +47,8 @@ class CanvasBoundary extends Component<{ children: ReactNode }, { error: string 
 
 /** Letterbox bars during conversations and a fade from black when a chapter starts. */
 function Cinema() {
-  const talking = useGame((s) => !!s.dialogue);
+  const talking = useGame((s) => !!s.dialogue || !!s.ride);
+  const ride = useGame((s) => s.ride);
   const card = useGame((s) => s.card);
   const [fadeKey, setFadeKey] = useState(0);
   const [prevCard, setPrevCard] = useState(card);
@@ -61,6 +63,11 @@ function Cinema() {
         <i />
       </div>
       {fadeKey > 0 && <div className="fade-in" key={fadeKey} aria-hidden />}
+      {ride && (
+        <div className="ride-caption" key={ride.started} data-testid="bus-ride">
+          🚌 في الحافلة… <span>{spotById.get(ride.to)?.name}</span>
+        </div>
+      )}
     </>
   );
 }

@@ -885,3 +885,41 @@ select:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* bus ride sequence */
+.ride-caption {
+  position: fixed;
+  left: 50%;
+  bottom: 12vh;
+  transform: translateX(-50%);
+  z-index: 30;
+  direction: rtl;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  text-shadow: 0 2px 8px #000;
+  pointer-events: none;
+  animation: ride-caption 6s ease forwards;
+}
+.ride-caption span {
+  color: var(--accent, #f5b301);
+}
+.ride-caption::after {
+  /* the closing fade to black before arriving */
+  content: '';
+  position: fixed;
+  inset: -100vh -100vw;
+  background: #000;
+  opacity: 0;
+  animation: ride-fade 6s ease forwards;
+}
+@keyframes ride-caption {
+  0% { opacity: 0; }
+  10%, 80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes ride-fade {
+  0%, 82% { opacity: 0; }
+  95% { opacity: 1; }
+  100% { opacity: 0; }
+}

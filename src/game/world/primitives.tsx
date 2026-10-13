@@ -1,6 +1,6 @@
 // Reusable procedural building blocks. Colliders use absolute positions and
 // must live inside the single fixed <RigidBody> created by <StaticWorld>.
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider } from '@react-three/rapier';
@@ -109,6 +109,15 @@ export function Sign({ p, text, w = 3, h = 0.75, rotY = 0, bg, fg }: { p: V3; te
       <meshStandardMaterial map={tex} roughness={0.6} />
     </mesh>
   );
+}
+
+/** Children that hide while the player is inside the footprint (upper floors over an interior). */
+export function HideInside({ x0, z0, x1, z1, children }: { x0: number; z0: number; x1: number; z1: number; children: ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (ref.current) ref.current.visible = !(livePose.x > x0 && livePose.x < x1 && livePose.z > z0 && livePose.z < z1);
+  });
+  return <group ref={ref}>{children}</group>;
 }
 
 /** Roof slab that hides itself when the player is inside the footprint. */

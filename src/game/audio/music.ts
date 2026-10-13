@@ -3,7 +3,7 @@
 // flute), a soft drone and darbuka (doum / tek). Each chapter gets its own
 // seeded melody within the theme of its life stage.
 
-export type Theme = 'menu' | 'childhood' | 'youth' | 'adult' | 'night' | 'tense' | 'ending';
+export type Theme = 'menu' | 'childhood' | 'youth' | 'adult' | 'night' | 'tense' | 'ending' | 'wedding';
 
 interface ThemeDef {
   bpm: number;
@@ -11,7 +11,7 @@ interface ThemeDef {
   scale: number[];
   tonic: number; // MIDI note
   drums: 'maqsum' | 'baladi' | 'soft' | 'none';
-  lead: 'oud' | 'ney';
+  lead: 'oud' | 'ney' | 'zorna';
   density: number; // 0..1 probability a step gets a note
   drone: boolean;
 }
@@ -31,6 +31,8 @@ const THEMES: Record<Theme, ThemeDef> = {
   night: { bpm: 70, scale: BAYATI, tonic: 55, drums: 'none', lead: 'ney', density: 0.3, drone: true },
   tense: { bpm: 92, scale: HIJAZ, tonic: 52, drums: 'soft', lead: 'oud', density: 0.35, drone: true },
   ending: { bpm: 72, scale: AJAM, tonic: 55, drums: 'none', lead: 'ney', density: 0.45, drone: true },
+  // zorna (shrill reed) + bendir: the sound of a Tébessa wedding
+  wedding: { bpm: 128, scale: HIJAZ, tonic: 62, drums: 'baladi', lead: 'zorna', density: 0.75, drone: true },
 };
 
 // 8-step darbuka patterns (D = doum, T = tek, k = soft ka, . = rest)
@@ -212,6 +214,7 @@ class Music {
         const note = this.degreeToMidi(def, deg);
         const len = this.phrase[(i + 1) % 32] === null ? stepDur * 2 : stepDur;
         if (def.lead === 'oud') this.oud(t, mtof(note), len);
+        else if (def.lead === 'zorna') this.zorna(t, mtof(note + 12), len);
         else this.ney(t, mtof(note + 12), len * 1.6);
       }
       // bass on bar starts
@@ -299,6 +302,33 @@ class Music {
     }
   }
 
+  /** Zorna: a nasal double-reed — bright sawtooth through a narrow formant, fast vibrato. */
+  private zorna(t: number, freq: number, dur: number) {
+    const ctx = this.ctx!;
+    const o = ctx.createOscillator();
+    const vib = ctx.createOscillator();
+    const vibG = ctx.createGain();
+    const f = ctx.createBiquadFilter();
+    const g = ctx.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(freq * 0.97, t);
+    o.frequency.linearRampToValueAtTime(freq, t + 0.04);
+    vib.frequency.value = 6.5;
+    vibG.gain.value = freq * 0.012;
+    vib.connect(vibG).connect(o.frequency);
+    f.type = 'bandpass';
+    f.frequency.value = 1600;
+    f.Q.value = 1.4;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.07, t + 0.02);
+    g.gain.setTargetAtTime(0.0001, t + dur * 0.95, 0.04);
+    o.connect(f).connect(g).connect(this.bus!);
+    o.start(t);
+    vib.start(t);
+    o.stop(t + dur + 0.3);
+    vib.stop(t + dur + 0.3);
+  }
+
   private doum(t: number) {
     const ctx = this.ctx!;
     const o = ctx.createOscillator();
@@ -339,9 +369,10 @@ class Music {
 export const music = new Music();
 
 /** Which theme fits the moment: life stage, night, and how the story is going. */
-export function themeFor(opts: { screen: string; age: number; hour: number; risk: number; ending: boolean }): Theme | null {
+export function themeFor(opts: { screen: string; age: number; hour: number; risk: number; ending: boolean; event?: string }): Theme | null {
   if (opts.ending) return 'ending';
   if (opts.screen !== 'game') return 'menu';
+  if (opts.event === 'wedding') return 'wedding';
   if (opts.risk >= 70) return 'tense';
   if (opts.hour >= 21.5 || opts.hour < 5.5) return 'night';
   if (opts.age <= 12) return 'childhood';

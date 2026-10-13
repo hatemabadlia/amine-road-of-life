@@ -719,9 +719,16 @@ const ch16: Chapter = {
     ]),
     goto('bus', 'روح لموقف الحافلة', 'bus_stop', { if: 'skipped_ch16' }),
     act(
-      'cyber',
-      'استنّى الحافلة',
+      'ride',
+      'اركب الحافلة للمدينة',
       'bus_sign',
+      [N('الحافلة الثمانية. مراد يضحك، وأمين يشوف من الطاقة: الحومة تبعد، والمدرسة تبعد معاها.')],
+      { if: 'skipped_ch16', ride: 'cyber_front', moves: [{ npc: 'mourad', spot: 'cyber' }] },
+    ),
+    act(
+      'cyber',
+      'السيبر — اقعد قدام البيسي',
+      'cyber_pc',
       [
         N('السيبر مظلم، ريحة الدخان. أطفال صغار وشباب كبار.'),
         MO('شفت؟ الجنة!'),
@@ -1017,7 +1024,13 @@ const ch20: Chapter = {
       when('chose_quiz', [say('walid', 'المسابقة؟ نجي معاك! ونجيبو ياسين، يعرف الجغرافيا كلها.', { if: 'friends_yacine' })]),
       when('chose_tournament', [say('walid', 'الدورة! أخيرا نلعبو مع بعض ضد المدارس الأخرى!')]),
       say('walid', 'السيمانة هاذي لازم نحضّرو بالجد.'),
-    ]),
+    ], {
+      // on cup day the director and the coach are at the stadium
+      moves: [
+        { npc: 'director', spot: 'stadium', if: 'chose_tournament' },
+        { npc: 'coach', spot: 'stadium', if: 'chose_tournament' },
+      ],
+    }),
     act(
       'prepare_quiz',
       'حضّر للمسابقة في المكتب',
@@ -1048,7 +1061,15 @@ const ch20: Chapter = {
       ],
       { if: 'chose_tournament' },
     ),
-    goto('event', 'نهار المسابقة — ساحة المدرسة', 'school_courtyard', { skipTo: '10:00' }),
+    goto('event', 'نهار المسابقة — ساحة المدرسة', 'school_courtyard', { if: 'chose_quiz', skipTo: '10:00' }),
+    goto('event_cup', 'نهار الدورة — الملعب البلدي', 'stadium', {
+      if: 'chose_tournament',
+      skipTo: '10:00',
+    }),
+    act('cup_match', 'الماتش — اقعد مع الفريق في الدكة', 'stadium_bench', [
+      N('الملعب البلدي. المدارجة فيها الوالدين والمعلمين. أمين عمرو ما لعب في ملعب بالسور.'),
+      N('الصفارة. أربعين دقيقة تفوت في نفس.'),
+    ], { if: 'chose_tournament' }),
     talk('result', 'النتيجة', 'director', [
       when(
         'prepared_well & grades>=55 & chose_quiz',

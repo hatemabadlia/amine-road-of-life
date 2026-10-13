@@ -60,6 +60,16 @@ export const SPOTS: Spot[] = [
   spot('center', 'مركز الإصغاء', 15, -44, 3),
   spot('mosque_front', 'قدام الجامع', 35, -37.5, 3),
   spot('grandpa', 'دار جدّي', -23, -55, 3.5),
+  // places across town (reached on foot or by bus)
+  spot('cyber_front', 'قدام السيبر', 5.8, -61.5, 2.5),
+  spot('cyber', 'سيبر النجمة', 14, -61.5, 3),
+  spot('hospital_front', 'باب السبيطار', -64, 49.8, 3),
+  spot('hospital_ward', 'غرفة المرضى', -58.5, 68, 2.5),
+  spot('hospital_bed', 'فراش السبيطار', -58.5, 71.5, 0.1),
+  spot('exam_front', 'باب مركز الامتحان', 71.5, 7.8, 3),
+  spot('exam_hall', 'قاعة الامتحان', 71.5, 18, 3),
+  spot('stadium_gate', 'باب الملعب البلدي', 62, 48.8, 3),
+  spot('stadium', 'الملعب البلدي', 62, 64, 6),
 ];
 
 const obj = (id: string, name: string, verb: string, x: number, z: number): WorldObject => ({ id, name, verb, x, z });
@@ -89,6 +99,10 @@ export const OBJECTS: WorldObject[] = [
   obj('street_sign', 'لافتة الطريق', 'خمّم وين تروح', -7.5, 5.6),
   obj('bus_sign', 'لافتة الحافلة', 'استنى الحافلة', 31, 5.2),
   obj('mosque_door', 'باب الجامع', 'ادخل', 35, -40.3),
+  obj('cyber_pc', 'البيسي', 'اقعد قدام البيسي', 16.2, -64),
+  obj('exam_desk', 'طاولة الامتحان', 'اقعد في بلاصتك', 73.5, 20.2),
+  obj('hospital_desk', 'استقبال السبيطار', 'سقسي على المريض', -64, 55.5),
+  obj('stadium_bench', 'دكة الفريق', 'اقعد مع الفريق', 52.5, 64),
 ];
 
 export const FOOTPRINTS: Footprint[] = [
@@ -110,6 +124,11 @@ export const FOOTPRINTS: Footprint[] = [
   { id: 'block_nw', name: '', x0: -72, z0: -66, x1: -48, z1: -40, kind: 'deco' },
   { id: 'block_s', name: '', x0: 10, z0: 50, x1: 40, z1: 66, kind: 'deco' },
   { id: 'block_ne', name: '', x0: 50, z0: -66, x1: 72, z1: -40, kind: 'deco' },
+  { id: 'neighbor2', name: '', x0: -40, z0: -46, x1: -20, z1: -38, kind: 'deco' },
+  { id: 'cyber', name: 'السيبر', x0: 8, z0: -66, x1: 20, z1: -57, kind: 'shop' },
+  { id: 'hospital', name: 'السبيطار', x0: -76, z0: 52, x1: -52, z1: 74, kind: 'public' },
+  { id: 'exam', name: 'مركز الامتحان', x0: 65, z0: 10, x1: 78, z1: 25, kind: 'public' },
+  { id: 'stadium', name: 'الملعب البلدي', x0: 46, z0: 51, x1: 78, z1: 77, kind: 'field' },
 ];
 
 /** Roads: [x0, z0, x1, z1] asphalt rectangles. */
@@ -133,7 +152,7 @@ export function insideFootprint(id: string, x: number, z: number, pad = 0): bool
 
 /** What Amine is walking on (for footstep sounds). */
 export function surfaceAt(x: number, z: number): 'tile' | 'dirt' | 'asphalt' | 'grass' {
-  if (x > 10 && x < 40 && z > 12 && z < 42) return 'grass';
+  if ((x > 10 && x < 40 && z > 12 && z < 42) || (x > 48 && x < 76 && z > 56 && z < 72)) return 'grass';
   if (ROADS.some(([x0, z0, x1, z1]) => x > x0 && x < x1 && z > z0 && z < z1)) return 'asphalt';
   // sidewalks along the two main streets
   if ((Math.abs(z) > 4 && Math.abs(z) < 6) || (Math.abs(x) > 4 && Math.abs(x) < 6)) return 'tile';

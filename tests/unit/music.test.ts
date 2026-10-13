@@ -25,5 +25,6 @@ describe('music', () => {
     expect(themeFor({ ...base, hour: 23 })).toBe('night');
     expect(themeFor({ ...base, risk: 80 })).toBe('tense');
     expect(themeFor({ ...base, ending: true })).toBe('ending');
+    expect(themeFor({ ...base, event: 'wedding' })).toBe('wedding');
   });
 });

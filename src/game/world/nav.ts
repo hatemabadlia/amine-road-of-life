@@ -148,7 +148,7 @@ const DIRS: [number, number, number][] = [
 ];
 
 /** A* from world point to world point; returns smoothed waypoints (excluding the start), or null. */
-export function findPath(g: NavGrid, from: Pt, to: Pt, maxNodes = 60000): Pt[] | null {
+export function findPath(g: NavGrid, from: Pt, to: Pt, maxNodes = g.w * g.h): Pt[] | null {
   const s = nearestWalkable(g, from[0], from[1]);
   const t = nearestWalkable(g, to[0], to[1]);
   if (!s || !t) return null;
