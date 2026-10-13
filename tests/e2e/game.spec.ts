@@ -279,3 +279,52 @@ test('chapter 8: Friday prayer — ablution, shoes off, khutba and prayer inside
   expect(g.chapter).toBe(9);
   expect(g.flags.listened_khutba).toBe(true);
 });
+
+test('chapter 41: volunteering day at Dar Chabab — sign up, clean-up team, certificate', async ({ page }) => {
+  test.setTimeout(300_000);
+  await startNewGame(page);
+  await page.evaluate(() => window.__AMINE__.jumpTo(41));
+  // volunteer instead of the club, then pick the clean-up team
+  const pick: Record<string, number> = { join_club: 1, vol_team: 1 };
+  const visited: string[] = [];
+  for (let guard = 0; guard < 150; guard++) {
+    const st = await page.evaluate(() => {
+      const s = window.__AMINE__.state();
+      return { card: s.card, view: s.dialogue?.view ?? null, ch: s.game.chapter };
+    });
+    if (st.ch !== 41) break;
+    if (st.card) {
+      await page.waitForTimeout(950);
+      await page.getByTestId('start-chapter').click();
+      continue;
+    }
+    if (st.view) {
+      if (st.view.kind === 'choice') await page.getByTestId(`choice-${pick[st.view.id] ?? 0}`).click();
+      else {
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(40);
+        if ((await page.evaluate(() => window.__AMINE__.state().dialogue?.view.kind ?? null)) === 'line') await page.keyboard.press('Enter');
+      }
+      await page.waitForTimeout(80);
+      continue;
+    }
+    const o = await page.evaluate(() => window.__AMINE__.objective());
+    if (!o) {
+      await page.waitForTimeout(150);
+      continue;
+    }
+    visited.push(o.id);
+    await page.evaluate((t) => window.__AMINE__.goTo(t), o.target);
+    await page.waitForTimeout(600);
+    if (o.type !== 'goto' && !(await page.evaluate(() => !!window.__AMINE__.state().dialogue))) {
+      await expect(page.getByTestId('prompt')).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press('KeyE');
+      await page.waitForTimeout(200);
+    }
+  }
+  expect(visited).toEqual(expect.arrayContaining(['to_dar', 'nasser_signup', 'team_clean_kit', 'team_clean_alley', 'nasser_thanks']));
+  expect(visited).not.toContain('club');
+  const g = await page.evaluate(() => window.__AMINE__.state().game);
+  expect(g.chapter).toBe(42);
+  expect(g.flags.volunteer_spirit).toBe(true);
+});

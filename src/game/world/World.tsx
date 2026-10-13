@@ -7,6 +7,7 @@ import { FOOTPRINTS, ROADS, WORLD_HALF } from './layout';
 import { facadeMaterial, flatMat, groundTexture, mat, PALETTE, rng } from './materials';
 import { Districts } from './Districts';
 import { MosqueBuilding } from './Mosque';
+import { DarChababBuilding } from './DarChabab';
 import { Bench, Box, Car, Cyl, Door, Flag, HidingRoof, Lamp, Palm, RoofKit, Sign, Tree, WallLine, Window } from './primitives';
 
 // ---------------------------------------------------------------------------
@@ -729,6 +730,7 @@ export const World = memo(function World({ age }: { age: number }) {
         <Workshop />
         <PublicBuildings />
         <MosqueBuilding />
+        <DarChababBuilding age={age} />
         <Grandpa />
         <DecoBlocks />
         <StreetProps />

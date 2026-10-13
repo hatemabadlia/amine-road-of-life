@@ -154,8 +154,8 @@ export function CameraRig() {
         const shot: Framing = tag ?? (d.view.kind === 'choice' ? 'two' : speaker === 'narrator' ? 'wide' : speaker === 'amine' ? 'ots_amine' : 'ots_npc');
         const key = `${shot}:${speaker ?? 'choice'}`;
         if (key !== shotKey.current) {
-          // a new shot is a hard cut, like film editing
-          cut = shotKey.current !== '';
+          // every new shot (including the first of a conversation) is a hard cut, like film editing
+          cut = true;
           shotKey.current = key;
           shotTime.current = 0;
         }

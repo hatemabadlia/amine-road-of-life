@@ -120,7 +120,7 @@ export interface Chapter {
   /** characters lying down this chapter (e.g. in a hospital bed) */
   lying?: string[];
   /** a special event that dresses the neighbourhood (decorations, music) */
-  event?: 'wedding' | 'friday';
+  event?: 'wedding' | 'friday' | 'volunteer';
   opening: Step[];
   objectives: Objective[];
   closing: Step[];

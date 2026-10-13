@@ -379,10 +379,11 @@ const ch41: Chapter = {
   title: 'صحبة جديدة',
   mission: 'نادي العلوم',
   age: 15,
-  summary: 'نادي، تطوّع، وصحاب يخلّوك أحسن.',
+  summary: 'نادي، تطوّع في دار الشباب، وصحاب يخلّوك أحسن.',
   start: { spot: 'lycee_courtyard', time: '14:00' },
+  event: 'volunteer',
   cast: { imene: 'lycee_courtyard', yacine: 'lycee_courtyard', walid: 'football' },
-  opening: [N('على باب المخبر: "نادي الروبوتيك — مرحبا بالجميع".')],
+  opening: [N('على باب المخبر: "نادي الروبوتيك — مرحبا بالجميع". وفي لوحة الإعلانات: "يوم التطوّع — دار الشباب، العشية".')],
   objectives: [
     talk('yacine', 'ياسين', 'yacine', [
       when(
@@ -404,16 +405,57 @@ const ch41: Chapter = {
       choose(
         'join_club',
         opt('ندخل للنادي.', 'good', { set: ['joined_club', 'new_friends'], fx: { confidence: 5, grades: 3 } }),
-        opt('نروح نعاون في جمعية الحومة.', 'good', { set: ['volunteer', 'new_friends'], fx: { confidence: 5, parents: 3 } }),
+        opt('نروح نتطوّع في دار الشباب.', 'good', { set: ['volunteer', 'new_friends'], fx: { confidence: 5, parents: 3 } }),
         opt('ما نحبش النوادي.', 'neutral', {}),
       ),
     ]),
-    act('club', 'أول نشاط', 'lycee_desk', [
+    act('club', 'أول نشاط في النادي', 'lycee_desk', [
       when('joined_club', [N('روبو صغير يمشي على خط أسود. كي مشى، الكل صفّق. أمين حس بحاجة جديدة: الفرحة النظيفة.')]),
-      when('volunteer', [N('توزيع القفة تاع رمضان على العائلات. شيباني بكى كي شاف أمين. "ربي يرضى عليك يا وليدي."')]),
-      when('!joined_club & !volunteer', [N('أمين قعد يتفرّج. الضحك تاع النادي وصل حتى لعندو.')]),
+      when('!joined_club', [N('أمين قعد يتفرّج. الضحك تاع النادي وصل حتى لعندو.')]),
       pass(120),
-    ]),
+    ], { if: '!volunteer' }),
+    // ---- volunteering day at Dar Chabab ---------------------------------------
+    goto('to_dar', 'روح لدار الشباب — يوم التطوّع', 'dar_chabab_front', { if: 'volunteer' }),
+    talk('nasser_signup', 'سجّل عند المنشّط ناصر', 'nasser', [
+      say('nasser', 'مرحبا! أنت أمين؟ ياسين قالي عليك. اليوم عندنا ثلاث فرق، وكل فريق ناقصو يد.'),
+      say('nasser', 'التطوّع ماشي صدقة. هو تبادل: تعطي وقتك، وتاخذ معنى.'),
+      choose(
+        'vol_team',
+        opt('فريق القفة: نحضّرو للعائلات المحتاجة.', 'help', { set: ['team_baskets'] }),
+        opt('فريق التنظيف: الزنقة والساحة.', 'help', { set: ['team_clean'] }),
+        opt('فريق دروس الدعم: نعاون الصغار.', 'help', { set: ['team_tutor'] }),
+      ),
+    ], { if: 'volunteer' }),
+    act('team_baskets_work', 'فريق القفة — حضّر القفف', 'food_baskets', [
+      N('سميد، زيت، سكر، عدس. سبعين قفة. ناصر قال: "الأسماء تبقى سرّ. الكرامة قبل كلش."'),
+      N('مع العشية، أمين حمل قفة لدار شيباني وحدو. الشيباني ما قدرش يهدر. حط يدّو على راس أمين: "ربي يرضى عليك يا وليدي."', { cam: 'close' }),
+      fx({ parents: 4, confidence: 3, honesty: 2 }),
+      pass(120),
+    ], { if: 'team_baskets' }),
+    act('team_clean_kit', 'فريق التنظيف — خوذ الجيلي والعدّة', 'clean_kit', [
+      N('جيلي أخضر، ڨانطوات، شكاير، ومكانس. ناصر: "نبداو بالزنقة اللي ورا الحانوت."'),
+    ], { if: 'team_clean' }),
+    act('team_clean_alley', 'نظّف الزنقة مع الفريق', 'alley_wall', [
+      N('القرعات، البلاستيك، وحتى عقاب الدخان. الزنقة اللي كان يخاف منها، ولّات تشبه الحومة.'),
+      when('smoking_habit | tried_cig_errand', [N('أمين لمّ عقاب سجاير من الأرض. وقف شوية. وكمّل.')]),
+      N('شيباني خرج بالشاي: "ياخي بيكم يا الشباب!" وصغار الحومة جاو يعاونو.'),
+      fx({ health: 2, confidence: 4, parents: 2 }),
+      pass(120),
+    ], { if: 'team_clean' }),
+    act('team_tutor_work', 'فريق الدعم — عاون الصغار', 'tutor_table', [
+      N('طفلة صغيرة ما تحبش الحساب. "الأرقام صعيبة." أمين جاب الحلوى وعاود الشرح.'),
+      N('كي فهمت، ضحكت. وأمين تفكّر الأستاذة اللي ما قنطاتش منو.'),
+      fx({ confidence: 4, grades: 2, parents: 2 }),
+      pass(120),
+    ], { if: 'team_tutor' }),
+    talk('nasser_thanks', 'ناصر — آخر النهار', 'nasser', [
+      say('nasser', 'يعطيك الصحة يا أمين. هاذي شهادة متطوّع، وهاذا مفتاح القاعة: تقدر تجي وقت ما تحب.', { cam: 'close' }),
+      choose(
+        'keep_volunteering',
+        opt('نجي كل سبت.', 'good', { set: ['volunteer_spirit', 'weekly_volunteer'], fx: { confidence: 3 } }),
+        opt('نجي كي نقدر.', 'neutral', { set: ['volunteer_spirit'] }),
+      ),
+    ], { if: 'volunteer' }),
     talk('walid', 'وليد في الملعب', 'walid', [
       say('walid', 'أمين، تبدّلت. للأحسن.'),
       when('chose_mourad_group | joined_crew', [say('walid', 'كنت نقول خسرناك. الحمد لله اللي رجعت.')]),

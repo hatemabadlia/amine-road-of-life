@@ -16,6 +16,59 @@ export interface SideActivity {
 }
 
 export const SIDES: SideActivity[] = [
+  // ---- Dar Chabab: volunteering ---------------------------------------------
+  {
+    id: 'vol_tutor',
+    target: 'tutor_table',
+    label: 'تطوّع: عاون الصغار في الواجبات',
+    minAge: 13,
+    dialogue: [
+      N('طاولة مليانة كراريس. طفل صغير ما فهمش القسمة. أمين عاود الشرح بالحلوى: "عندك عشرة، وثلاثة صحاب..."'),
+      N('كي فهم، الطفل ضحك. وأمين حتى هو فهم حاجة: كي تشرح، تتعلّم مرتين.'),
+      fx({ confidence: 2, grades: 1, parents: 1 }, { set: ['volunteer_spirit'] }),
+      pass(60),
+    ],
+  },
+  {
+    id: 'vol_plant',
+    target: 'garden_plot',
+    label: 'تطوّع: اغرس شجرة في حملة التشجير',
+    dialogue: [
+      N('حفرة، شتلة زيتون صغيرة، وبيدون ما. المنشّط قال: "هاذي تكبر وأنت تكبر."'),
+      N('أمين كتب اسمو على لوحة صغيرة وحطها حدا الشجرة.'),
+      fx({ health: 1, confidence: 2 }, { set: ['volunteer_spirit', 'planted_tree'] }),
+      pass(45),
+    ],
+  },
+  {
+    id: 'vol_baskets',
+    target: 'food_baskets',
+    label: 'تطوّع: حضّر قفف للعائلات المحتاجة',
+    dialogue: [
+      N('سميد، زيت، سكر، عدس، حليب. قفة ورا قفة. الأسماء ما تتقالش: الكرامة قبل كلش.'),
+      N('خمسين قفة. وكل وحدة فيها دار كاملة.'),
+      fx({ parents: 2, confidence: 2, honesty: 1 }, { set: ['volunteer_spirit'] }),
+      pass(60),
+    ],
+  },
+  {
+    id: 'vol_clean',
+    target: 'clean_kit',
+    label: 'تطوّع: حملة تنظيف الحومة',
+    dialogue: [
+      N('جيلي أخضر، ڨانطوات، وشكاير. الفريق نظّف الزنقة والساحة. الناس خرجو من الديار يعاونو.'),
+      N('شيباني جاب الشاي للكل: "ياخي بيكم يا الشباب."'),
+      fx({ health: 1, confidence: 2, parents: 1 }, { set: ['volunteer_spirit'] }),
+      pass(60),
+    ],
+  },
+  {
+    id: 'youth_pingpong',
+    target: 'pingpong',
+    label: 'العب البينغ بونغ في دار الشباب',
+    repeatable: true,
+    dialogue: [N('تك، تك، تك. الكورة الصغيرة تجري، والضحك يجري معاها.'), fx({ health: 1 }), pass(20)],
+  },
   {
     id: 'study',
     target: 'desk',

@@ -17,6 +17,7 @@ import { NavBuilder } from '../world/NavBuilder';
 import { EventDecor } from '../world/EventDecor';
 import { BusRide } from '../world/BusRide';
 import { MosqueLife } from '../world/Mosque';
+import { VolunteerDay } from '../world/DarChabab';
 import { useGame } from '../store';
 import { input } from '../player/input';
 
@@ -45,6 +46,7 @@ function Scene({ onReady }: { onReady: () => void }) {
         <Townsfolk />
         <NavBuilder />
         <MosqueLife />
+        <VolunteerDay />
         <Ball />
         <CameraRig />
         <Interaction />

@@ -42,9 +42,9 @@ const PEOPLE: Person[] = [
 // public places each role likes to visit during the day
 const PLACES: Record<Role, string[]> = {
   man: ['hanout_front', 'square', 'souk', 'bus_stop', 'crossroads', 'workshop_front', 'mosque_front'],
-  woman: ['hanout_front', 'souk', 'square', 'bus_stop', 'center', 'school_gate'],
+  woman: ['hanout_front', 'souk', 'square', 'bus_stop', 'center', 'school_gate', 'dar_chabab_front'],
   elder: ['square', 'mosque_front', 'hanout_front', 'souk'],
-  kid: ['crossroads', 'hanout_front', 'school_gate', 'football', 'football'],
+  kid: ['crossroads', 'hanout_front', 'school_gate', 'football', 'football', 'dar_yard'],
 };
 // building entrances where people disappear indoors at night and come out in the morning
 const DOORS: [number, number][] = [

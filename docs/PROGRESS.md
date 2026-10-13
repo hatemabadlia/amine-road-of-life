@@ -11,7 +11,7 @@
 7. All 68 chapters with real content; automated validation (0 issues).
 8. Side activities, ambient life, procedural audio, day/night, visual polish, mobile controls.
 9. Ending system (72 endings, all proven reachable), coverage report.
-10. Tests: 47 unit/integration, 20 Playwright runs (desktop + mobile, 1 mobile-only skipped on desktop); lint, type-check and build pass.
+10. Tests: 47 unit/integration, 22 Playwright runs (desktop + mobile, 1 mobile-only skipped on desktop); lint, type-check and build pass.
 
 ## Graphics pass
 - Gradient sky shader with sun disc, halo and moon; drifting low-poly clouds; keyframed time-of-day palette (dawn, day, dusk, night) driving sun/moon light, hemisphere fill, fog and cloud tint.
@@ -60,6 +60,20 @@
   6. afterwards chooses whether to give charity to the old man at the door.
 - New character: the imam, سي عبد الحميد. The prayer itself is narrated, not animated, and no recitation is synthesised.
 - e2e test: the Friday chapter played through the real UI, checking that Amine prays inside the hall.
+
+## Dar Chabab (youth centre) and volunteering
+- **The building**, next to the cybercafé:
+  - a hall with a sign-up desk, notice board, stage ("معاً نبني الحومة") and tutoring tables;
+  - a store room with food baskets and clean-up kits (vests, gloves, brooms);
+  - a yard with a tree-planting garden (the saplings grow as Amine ages), a ping-pong table and a mini court.
+- **New character:** the youth worker, المنشّط ناصر. He recognises Amine once he has volunteered.
+- **Volunteering activities (free roam, once per chapter):** tutoring children (age 13+), tree planting, packing food baskets for families in need, and a neighbourhood clean-up. Each sets `volunteer_spirit` and gives confidence, family respect or health. Ping-pong is there just for fun.
+- **Chapter 41, Volunteering Day:** banners and volunteers in green vests fill the yard. If Amine chooses to volunteer instead of joining the club:
+  1. he signs up with Nasser and picks a team (food baskets, clean-up of the alley behind the shop, or tutoring children);
+  2. he does the team's work;
+  3. Nasser gives him a volunteer certificate and a key to the hall.
+- **Camera:** the first shot of every conversation is now a hard cut (no camera glide).
+- **e2e test:** chapter 41 played through the real UI on the clean-up path.
 
 ## Known limitations
 - Environment art is procedural low-poly. Every character shares one base body (only colours and accessories differ). There's no sitting animation, and the "lying in bed" pose is the standing pose rotated. No screen-space AO (tried; it darkened the frame and was costly).
