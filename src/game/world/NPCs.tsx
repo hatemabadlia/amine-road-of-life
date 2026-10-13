@@ -62,7 +62,7 @@ function NPC({ id, x, z }: { id: string; x: number; z: number }) {
     if (group.current) group.current.rotation.y = yaw.current;
     const st = useGame.getState();
     if (model.current) model.current.talking = st.dialogue?.view.kind === 'line' && st.dialogue.view.speaker === id;
-    if (tag.current) tag.current.visible = d < 7 && !st.dialogue;
+    if (tag.current) tag.current.visible = d > 2.2 && d < 9 && !st.dialogue;
   });
 
   return (
@@ -107,6 +107,8 @@ const WALKER_LOOKS: Look[] = [
   { skin: '#dcae85', shirt: '#2471a3', pants: '#1c2833', hair: '#3b2a20', scale: 0.7, style: 'short' },
   { skin: '#c48b62', shirt: '#117a65', pants: '#212f3d', hair: '#111', scale: 1.02, style: 'short' },
   { skin: '#e0b48c', shirt: '#884ea0', pants: '#1b2631', hair: '#2b1b14', scale: 0.92, hijab: '#2c3e50' },
+  { skin: '#c99670', shirt: '#e74c3c', pants: '#ecf0f1', hair: '#111', scale: 0.68, style: 'short' },
+  { skin: '#dcae85', shirt: '#27ae60', pants: '#ecf0f1', hair: '#3b2416', scale: 0.72, style: 'curly' },
 ];
 
 const ROUTES: [number, number][][] = [
@@ -116,15 +118,18 @@ const ROUTES: [number, number][][] = [
   [[5, 35], [5, -60]],
   [[48, -12], [70, -12], [70, -27], [48, -27]],
   [[-36, 9], [-12, 9]],
+  // kids kicking about on the pitch
+  [[15, 31], [34, 34], [30, 38], [16, 37]],
+  [[33, 18], [17, 24], [21, 17]],
 ];
 
-function Walker({ look, route, offset }: { look: Look; route: [number, number][]; offset: number }) {
+function Walker({ look, route, offset, speedBoost = 0 }: { look: Look; route: [number, number][]; offset: number; speedBoost?: number }) {
   const body = useRef<RapierRigidBody>(null);
   const group = useRef<THREE.Group>(null);
   const model = useRef<HumanoidHandle>(null);
   const seg = useRef(0);
   const pos = useRef(new THREE.Vector2(route[0][0], route[0][1]));
-  const speed = 1.1 + offset * 0.1;
+  const speed = 1.1 + offset * 0.1 + speedBoost;
   useEffect(() => {
     // spread walkers along their route
     pos.current.set(route[0][0] + (route[1][0] - route[0][0]) * offset * 0.15, route[0][1] + (route[1][1] - route[0][1]) * offset * 0.15);
@@ -167,7 +172,7 @@ export function Pedestrians() {
   return (
     <>
       {ROUTES.map((r, i) => (
-        <Walker key={i} look={WALKER_LOOKS[i % WALKER_LOOKS.length]} route={r} offset={i} />
+        <Walker key={i} look={WALKER_LOOKS[i % WALKER_LOOKS.length]} route={r} offset={i} speedBoost={i >= 6 ? 1.8 : 0} />
       ))}
     </>
   );
@@ -212,8 +217,7 @@ export function Ball() {
       lastGoal.current = clock.elapsedTime;
       useBall.getState().add();
       sound.goal();
-      const st = useGame.getState();
-      st.pushToast('قووول! ⚽', 'good');
+      useGame.getState().footballGoal();
       setTimeout(() => {
         b.setTranslation({ x: 25, y: 0.6, z: 27 }, true);
         b.setLinvel({ x: 0, y: 0, z: 0 }, true);

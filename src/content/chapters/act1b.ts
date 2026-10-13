@@ -1,6 +1,6 @@
 // ACT I — Chapters 6–22: childhood, ages 10–12.
 import type { Chapter } from '../../types/game';
-import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, use, when } from './dsl';
+import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, act, when } from './dsl';
 
 const ch6: Chapter = {
   id: 6,
@@ -37,7 +37,7 @@ const ch6: Chapter = {
         }),
       ),
     ]),
-    use('tv', 'التلفزيون يعيّط عليك...', 'tv', [
+    act('tv', 'التلفزيون يعيّط عليك...', 'tv', [
       N('الماتش تاع الشبيبة بدا. التيليكوموند فوق الكنبة.'),
       choose(
         'secret_tv',
@@ -54,7 +54,7 @@ const ch6: Chapter = {
         }),
       ),
     ]),
-    use('study', 'ساعة قراية في المكتب', 'desk', [
+    act('study', 'ساعة قراية في المكتب', 'desk', [
       N('ساعة كاملة. القسمة، والإملاء، والتاريخ.'),
       choose(
         'study_quality',
@@ -68,7 +68,7 @@ const ch6: Chapter = {
       M('وأعرف تساوم شوية، ماشي كل واحد يقولك سومة تخلّصها.'),
     ]),
     goto('to_souk', 'روح للسوق في الساحة', 'souk'),
-    use('stall', 'اشري الخضرة', 'stall', [
+    act('stall', 'اشري الخضرة', 'stall', [
       say('salah', 'أمين؟ جيت تقضي؟ الطماطم بستين، البصل بخمسين الكيلو.'),
       N('عمي صالح عندو طبلة في السوق نهار الجمعة.'),
       choose(
@@ -116,7 +116,7 @@ const ch7: Chapter = {
       N('مراد ما شافش في عينين أمين.'),
       fx({}, { set: ['saw_stairs'] }),
     ]),
-    use('look', 'شوف واش كاين تحت الدروج', 'under_stairs', [
+    act('look', 'شوف واش كاين تحت الدروج', 'under_stairs', [
       N('كي مشاو، كيس صغير ملفوف بالبلاستيك مخبّي ورا البوطو.'),
       N('أمين ما يعرفش واش فيه. بصح يعرف بلي ماشي حاجة مليحة.'),
       choose(
@@ -189,7 +189,7 @@ const ch8: Chapter = {
         opt('بابا، شريلي هذيك الكورة!', 'neutral', { then: [B('ههه، نشوفو إذا بقات الدراهم.')] }),
       ),
     ]),
-    use('work_stall', 'عاون عمي صالح في الطبلة', 'stall', [
+    act('work_stall', 'عاون عمي صالح في الطبلة', 'stall', [
       say('salah', 'أمين! عاوني نرتب هاذ الكراطن ونعطيك حقّك.'),
       choose(
         'work_souk',
@@ -241,7 +241,7 @@ const ch9: Chapter = {
   cast: { mourad: 'crossroads', walid: 'football' },
   opening: [say('teacher', 'غدوة كل واحد يجيب كراس الدروس، نشوف إذا راكم تكتبو.')],
   objectives: [
-    use('bag', 'دوّر في المحفظة', 'school_desk', [
+    act('bag', 'دوّر في المحفظة', 'school_desk', [
       N('المحفظة... الكتاب، المقلمة... والكراس؟ ما كانش!'),
       A('يا ربي... وين خلّيتو؟'),
     ]),
@@ -260,7 +260,7 @@ const ch9: Chapter = {
         opt('نقول بلي مراد ضيّعو.', 'neutral', { set: ['blame_mourad_nb'], fx: { mourad: -8 } }),
       ),
     ]),
-    use(
+    act(
       'rewrite',
       'عاود اكتب الدروس في المكتب',
       'desk',
@@ -371,7 +371,7 @@ const ch11: Chapter = {
   start: { spot: 'classroom', time: '09:00' },
   opening: [say('teacher', 'وزّعنا كشوف النقاط. كل واحد يجيبهولي غدوة موقّع.')],
   objectives: [
-    use('results', 'خوذ كشف النقاط', 'school_desk', [
+    act('results', 'خوذ كشف النقاط', 'school_desk', [
       when(
         'grades>=60',
         [N('المعدّل: 13.5 من 20. ماشي ممتاز، بصح مليح.'), fx({ confidence: 4 }, { set: ['good_report_11'] })],
@@ -387,7 +387,7 @@ const ch11: Chapter = {
       ),
     ], {}),
     goto('home', 'ارجع للدار بالكشف', 'home_living'),
-    use(
+    act(
       'signature',
       'الكشف يحتاج توقيع بابا...',
       'desk',
@@ -439,7 +439,7 @@ const ch12: Chapter = {
   opening: [N('عمي صالح كبر، وعينيه ما بقاوش كيما كانو.')],
   objectives: [
     goto('enter', 'ادخل للحانوت', 'hanout'),
-    use('witness', 'اشري حاجة من الكونطوار', 'counter', [
+    act('witness', 'اشري حاجة من الكونطوار', 'counter', [
       say('salah', 'واش تحب يا أمين؟'),
       N('ورا الرفوف، أمين شاف مراد يدخّل كارطة تيليفون وشكلاطة في جيبو.'),
       N('مراد شاف أمين. غمزلو.'),
@@ -515,7 +515,7 @@ const ch13: Chapter = {
         }),
       ),
     ]),
-    use('pick_books', 'لمّ الكتب مع ياسين', 'notice_board', [
+    act('pick_books', 'لمّ الكتب مع ياسين', 'notice_board', [
       when(
         'helped_yacine | told_teacher_bully',
         [
@@ -527,7 +527,7 @@ const ch13: Chapter = {
         [N('ياسين لمّ كتبو وحدو. أمين شاف من بعيد.'), N('ساعات الضحكة تاع الجماعة تخبّي صوت الضمير.')],
       ),
     ]),
-    use('class_seat', 'ارجع للقسم', 'school_desk', [
+    act('class_seat', 'ارجع للقسم', 'school_desk', [
       say('teacher', 'ياسين، اقعد...'),
       choose(
         'seat',
@@ -575,7 +575,7 @@ const ch14: Chapter = {
       ),
     ]),
     goto('to_hanout', 'اشري الحليب والخبز للدار', 'hanout'),
-    use('buy_home', 'اشري من عند عمي صالح', 'counter', [
+    act('buy_home', 'اشري من عند عمي صالح', 'counter', [
       say('salah', 'باباك مشى للجنوب؟ ربي يرجعو بالسلامة.'),
       choose(
         'spend_extra',
@@ -588,7 +588,7 @@ const ch14: Chapter = {
       ),
     ]),
     goto('home_k', 'ارجع للدار', 'home_kitchen'),
-    use('desk', 'دير الواجبات', 'desk', [N('الدار ساكتة بلا صوت التلفزيون تاع بابا.'), fx({ grades: 3 }), pass(60)]),
+    act('desk', 'دير الواجبات', 'desk', [N('الدار ساكتة بلا صوت التلفزيون تاع بابا.'), fx({ grades: 3 }), pass(60)]),
   ],
   closing: [
     when('promise_made', [N('الوعد سهل يتقال. الصعيب، يتعاش كل نهار.')], [N('بابا مشى. والدار ولات أكبر.')]),
@@ -622,7 +622,7 @@ const ch15: Chapter = {
         opt('وأنا كيفاش نشري؟ كل صحابي عندهم!', 'bad', { fx: { parents: -4, anger: 4 } }),
       ),
     ]),
-    use(
+    act(
       'piggy',
       'الحصالة',
       'piggy',
@@ -641,7 +641,7 @@ const ch15: Chapter = {
       { if: 'offered_savings' },
     ),
     goto('to_hanout', 'روح للحانوت', 'hanout'),
-    use('boxes', 'عمي صالح يحتاج يد', 'boxes', [
+    act('boxes', 'عمي صالح يحتاج يد', 'boxes', [
       say('salah', 'أمين! السلعة جات والظهر تاعي ما بقاش. تعاوني؟'),
       choose(
         'help_salah',
@@ -718,7 +718,7 @@ const ch16: Chapter = {
       ),
     ]),
     goto('bus', 'روح لموقف الحافلة', 'bus_stop', { if: 'skipped_ch16' }),
-    use(
+    act(
       'cyber',
       'استنّى الحافلة',
       'bus_sign',
@@ -737,7 +737,7 @@ const ch16: Chapter = {
       deadline: '08:00',
       onLate: { fx: { attendance: -2 }, note: 'وصلت متأخر.' },
     }),
-    use('class', 'ادخل للقسم', 'school_desk', [N('درس العلوم. البراكين.'), fx({ grades: 3 })], { if: '!skipped_ch16', time: 420 }),
+    act('class', 'ادخل للقسم', 'school_desk', [N('درس العلوم. البراكين.'), fx({ grades: 3 })], { if: '!skipped_ch16', time: 420 }),
     goto('home', 'ارجع للدار', 'home_living'),
     talk('mama_phone', 'ماما في التيليفون مع بابا', 'mama', [
       when(
@@ -785,7 +785,7 @@ const ch17: Chapter = {
   opening: [N('جوج ميساجات في نفس الوقت. وليد: "الماتش النهائي على الخمسة!" مراد: "كمال دار سهرة، أرواح."')],
   objectives: [
     goto('crossroad', 'القاطعة — خمّم وين تروح', 'crossroads'),
-    use('decide', 'اختار طريقك', 'street_sign', [
+    act('decide', 'اختار طريقك', 'street_sign', [
       N('من القاطعة، الملعب على اليمين، العمارة على اليسار.'),
       choose(
         'friends_choice',
@@ -885,7 +885,7 @@ const ch18: Chapter = {
         }),
       ),
     ]),
-    use('wall', 'حيط الزنقة', 'alley_wall', [
+    act('wall', 'حيط الزنقة', 'alley_wall', [
       N('على الحيط مكتوب بالطباشير: "الحومة ما تنساش".'),
       when('tried_smoke_12', [N('الريحة باقية في الحوايج. ماما راح تشم.')]),
     ]),
@@ -925,7 +925,7 @@ const ch19: Chapter = {
   start: { spot: 'home_bedroom', time: '20:00' },
   opening: [N('بابا رجع. الدار عامرة. والكذبات القديمة تحت الماطلة.')],
   objectives: [
-    use('think', 'خمّم في الفراش', 'bed', [
+    act('think', 'خمّم في الفراش', 'bed', [
       N('أمين يحسب: شحال من حاجة ما قالهاش؟'),
       when('lied_money & !money_lie_found', [N('الصرف تاع الكورة.')]),
       when('hid_skip_ch1', [N('النهار اللي هرب فيه ورجع.')]),
@@ -1005,7 +1005,7 @@ const ch20: Chapter = {
   cast: { walid: 'school_courtyard', coach: 'football' },
   opening: [N('على لوحة الإعلانات: "مسابقة المعرفة" و"دورة ما بين المدارس".')],
   objectives: [
-    use('board', 'اقرا لوحة الإعلانات', 'notice_board', [
+    act('board', 'اقرا لوحة الإعلانات', 'notice_board', [
       N('المسابقة: فريق من ثلاثة، تحضير أسبوع. الدورة: تدريب كل عشية.'),
       choose(
         'competition',
@@ -1018,7 +1018,7 @@ const ch20: Chapter = {
       when('chose_tournament', [say('walid', 'الدورة! أخيرا نلعبو مع بعض ضد المدارس الأخرى!')]),
       say('walid', 'السيمانة هاذي لازم نحضّرو بالجد.'),
     ]),
-    use(
+    act(
       'prepare_quiz',
       'حضّر للمسابقة في المكتب',
       'desk',
@@ -1033,7 +1033,7 @@ const ch20: Chapter = {
       ],
       { if: 'chose_quiz' },
     ),
-    use(
+    act(
       'prepare_t',
       'تدرّب في الملعب',
       'ball',
@@ -1082,7 +1082,7 @@ const ch21: Chapter = {
       say('jeddi', 'أمين! كبرت يا وليدي. تعال، الزيتونة تستنّاك.'),
       say('jeddi', 'هاذي الزيتونة غرسها جدّ بابا. عندها مية سنة.'),
     ]),
-    use('harvest', 'اجني الزيتون مع جدّك', 'olive_tree', [
+    act('harvest', 'اجني الزيتون مع جدّك', 'olive_tree', [
       N('الصبح كامل تحت الزيتونة. اليدين تبرد، الظهر يوجع.'),
       say('jeddi', 'شوف، الزيتونة ما تعطيش في عام. تستنّى، وتصبر، وتعطي.'),
       choose(
@@ -1129,7 +1129,7 @@ const ch22: Chapter = {
   cast: { mourad: 'school_courtyard', walid: 'school_courtyard' },
   opening: [N('آخر نهار في المدرسة الابتدائية. النتائج على الحيط.')],
   objectives: [
-    use('results', 'شوف النتائج', 'notice_board', [
+    act('results', 'شوف النتائج', 'notice_board', [
       when(
         'grades>=60',
         [N('أمين — ناجح — المعدل 7.5 من 10. ملاحظة: "تحسّن ملحوظ".'), fx({ confidence: 6 }, { set: ['passed_primary_well'] })],

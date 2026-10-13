@@ -1,6 +1,6 @@
 // ACT III — Chapters 46–57: young adulthood, ages 16–17.
 import type { Chapter } from '../../types/game';
-import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, use, when } from './dsl';
+import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, act, when } from './dsl';
 
 const SA = (t: string, extra?: Parameters<typeof say>[2]) => say('samia', t, extra);
 const BA = (t: string, extra?: Parameters<typeof say>[2]) => say('bachir', t, extra);
@@ -145,7 +145,7 @@ const ch48: Chapter = {
       when('amine_sought_help', [N('أمين تفكّر الدكتورة سامية: "الناس اللي كانو في الطريق القديم، يرجعو. حضّر الجواب قبل ما يجيو."')]),
     ]),
     goto('home', 'ارجع للدار', 'home_bedroom'),
-    use('night', 'الفراش — الليل', 'bed', [
+    act('night', 'الفراش — الليل', 'bed', [
       when('considering_kamel', [
         N('عشرين ألف في الشهر. أمين يحسب. ومن بعد يتفكّر الكيس الصغير تحت الدروج، كي كان عندو عشر سنين.'),
         choose(
@@ -173,7 +173,7 @@ const ch49: Chapter = {
   cast: { bachir: 'workshop', salah: 'hanout' },
   opening: [N('الويكاند: خدمة. الأيام: قراية ولا تكوين. والدراهم... لازم تتحسب.')],
   objectives: [
-    use('work', 'اخدم في الورشة — خدمة الويكاند', 'workbench', [
+    act('work', 'اخدم في الورشة — خدمة الويكاند', 'workbench', [
       BA('هاذ الشهر كاين كوموند كبيرة: أبواب لعمارة جديدة.'),
       choose(
         'weekend_work',
@@ -202,7 +202,7 @@ const ch49: Chapter = {
       ),
       when('smoking_habit', [say('salah', 'وهاذ الدخان اللي تشري مني كل نهار... حسبتو؟ خمسة آلاف في الشهر. خمسة آلاف تحرقهم.'), choose('quit_smoking', opt('عندك الحق. نحبس.', 'good', { unset: ['smoking_habit'], set: ['quit_smoking'], fx: { health: 6, risk: -5 } }), opt('ما نقدرش.', 'neutral', { fx: { money: -500, health: -3 } }))]),
     ]),
-    use('piggy', 'الحصالة', 'piggy', [
+    act('piggy', 'الحصالة', 'piggy', [
       N('أمين حسب الحصالة.'),
       when('savings>=3000', [N('أكثر من ثلاثة آلاف. أول مرة يحس بلي عندو "مستقبل" في علبة.'), fx({ confidence: 5 }, { set: ['saved_well'] })], [N('شوية. بصح أحسن من والو.')]),
     ]),
@@ -252,7 +252,7 @@ const ch50: Chapter = {
       ),
     ]),
     goto('stairs', 'العشية — الدروج فارغين', 'stairs'),
-    use('empty', 'تحت الدروج', 'under_stairs', [
+    act('empty', 'تحت الدروج', 'under_stairs', [
       N('البلاصة اللي كانت فيها الكيسان، فارغة. كمال تشد.'),
       when('mourad_recovering | mourad_first_session', [N('ومراد في المركز. لو كان مازال هنا...')], [N('ومراد؟ وين راه الليلة؟')]),
     ]),
@@ -397,7 +397,7 @@ const ch53: Chapter = {
         opt('خلاص، نسينا الماضي؟', 'neutral', { then: [B('النسيان ماشي سهل يا وليدي.')] }),
       ),
     ]),
-    use('fix', 'صلّح الطابلة المكسورة في الكوزينة', 'kitchen_table', [
+    act('fix', 'صلّح الطابلة المكسورة في الكوزينة', 'kitchen_table', [
       N('الطابلة تاع الكوزينة تتحرك من عامين. بابا ديما يقول "غدوة نصلّحها".'),
       when('worked_bachir | path_craft', [N('أمين جاب الأدوات من الورشة. ساعة، وحدة جديدة.'), fx({ parents: 6, trust: 4 }, { set: ['fixed_table'] })], [
         N('أمين حاول. ما جاتش مليحة، بصح ما تتحركش.'),
@@ -413,7 +413,7 @@ const ch53: Chapter = {
         opt('نحاول يا ماما.', 'neutral', { fx: { parents: 1 } }),
       ),
     ]),
-    use('weeks', 'سيمانات تفوت — الفراش', 'bed', [
+    act('weeks', 'سيمانات تفوت — الفراش', 'bed', [
       N('سيمانة. جوج. شهر.'),
       when(
         'repair_started & daily_honesty & honesty>=50',
@@ -450,7 +450,7 @@ const ch54: Chapter = {
       when('stepped_up', [A('كل صباح، على السبعة ونص.'), fx({ parents: 3 })], [A('...اليوم برك.')]),
     ]),
     goto('workshop', 'روح للخدمة', 'workshop'),
-    use('extra_work', 'خدمة زايدة للدار', 'workbench', [
+    act('extra_work', 'خدمة زايدة للدار', 'workbench', [
       BA('سمعت على باباك. خوذ ساعات زايدين. وإذا احتجت سلفة، قولّي.'),
       choose(
         'extra_hours',
@@ -520,7 +520,7 @@ const ch55: Chapter = {
         ],
       ),
     ]),
-    use('think', 'الفوارة — خمّم', 'fountain', [
+    act('think', 'الفوارة — خمّم', 'fountain', [
       when('took_shortcut', [N('الدراهم في الجيب. والخوف حتى هو.'), choose('undo', opt('نرجّع واش خذيت ونقول لبابا.', 'honest', { unset: ['took_shortcut'], set: ['undid_shortcut'], fx: { money: -100000, honesty: 12, trust: 4, risk: -10 }, then: [N('أمين رجّع. وحكى لبابا. بابا ما زعفش. قال: "رجعت من الطريق قبل ما يبلعك."')] }), opt('خلاص، فات.', 'neutral', {}))]),
       when('refused_shortcut', [N('الفوارة تجري. أمين يحس بخفة. الطريق الطويل طويل، بصح نظيف.')]),
     ]),
@@ -611,7 +611,7 @@ const ch57: Chapter = {
   cast: { nadia: 'lycee_class', mustapha: 'training_center', bachir: 'workshop' },
   opening: [N('أمين كتب في ورقة: "اليوم، ما نهربش." وحطّها على المرايا.')],
   objectives: [
-    use('list', 'اكتب واش لازم تواجه', 'desk', [
+    act('list', 'اكتب واش لازم تواجه', 'desk', [
       N('القائمة: '),
       when('path_study', [N('١. الأستاذة نادية: النقطة الضعيفة في الفيزياء.')]),
       when('path_vocational', [N('١. سي مصطفى: الغيابات في التطبيق.')]),
@@ -650,7 +650,7 @@ const ch57: Chapter = {
       ],
       { if: 'path_craft' },
     ),
-    use(
+    act(
       'face_money',
       'الحصالة — احسب بالصح',
       'piggy',

@@ -1,6 +1,6 @@
 // In-game heads-up display: mission, status, minimap, prompt and notifications.
 import { useEffect, useRef, useState } from 'react';
-import { activeObjective, chapterOf, livePose, objectiveTarget, useGame } from '../store';
+import { activeObjective, chapterOf, livePose, objectiveTarget, uiTiming, useGame } from '../store';
 import { formatTime } from '../story/engine';
 import { camState, npcPositions, useFocus } from '../engine/refs';
 import { drawMap } from './mapDraw';
@@ -127,7 +127,15 @@ function Prompt() {
   const dialogue = useGame((s) => s.dialogue);
   if (!focus || dialogue) return null;
   return (
-    <div className={`prompt panel ${focus.objective ? 'objective' : ''}`} data-testid="prompt" onClick={() => useGame.getState().interact(focus.id, focus.kind)}>
+    <div
+      className={`prompt panel ${focus.objective ? 'objective' : ''}`}
+      data-testid="prompt"
+      onClick={() => {
+        // ignore the tail of a double-click that just closed a dialogue
+        if (performance.now() - uiTiming.dialogueClosedAt < 500) return;
+        useGame.getState().interact(focus.id, focus.kind);
+      }}
+    >
       <span className="key">{isTouch() ? '👆' : 'E'}</span>
       <span>{focus.label}</span>
     </div>

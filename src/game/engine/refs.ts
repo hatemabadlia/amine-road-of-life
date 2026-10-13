@@ -1,5 +1,5 @@
 // Shared, non-reactive runtime references between 3D systems.
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import type { RapierRigidBody } from '@react-three/rapier';
 import { create } from 'zustand';
 

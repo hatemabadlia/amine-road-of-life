@@ -5,16 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    chunkSizeWarningLimit: 2500,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          three: ['three'],
-          r3f: ['@react-three/fiber', '@react-three/drei'],
-          rapier: ['@react-three/rapier'],
-        },
-      },
-    },
+    // Rapier ships its physics engine as inlined WASM (~2 MB); it is lazy-loaded with the game screen
+    chunkSizeWarningLimit: 4000,
   },
   test: {
     include: ['tests/unit/**/*.test.ts'],

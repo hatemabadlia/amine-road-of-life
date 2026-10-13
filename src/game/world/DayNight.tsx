@@ -9,7 +9,7 @@ import { sound } from '../audio/sound';
 
 const DAY = new THREE.Color('#a9cbe8');
 const DUSK = new THREE.Color('#e9a46a');
-const NIGHT = new THREE.Color('#0d1428');
+const NIGHT = new THREE.Color('#1a2648');
 const tmp = new THREE.Color();
 
 export function DayNight() {
@@ -46,13 +46,14 @@ export function DayNight() {
       sun.current.position.set(livePose.x + dir.x * 60, dir.y * 60, livePose.z + dir.z * 60);
       sun.current.target.position.set(livePose.x, 0, livePose.z);
       sun.current.target.updateMatrixWorld();
-      sun.current.intensity = 0.15 + light * 2.4;
+      // moonlight keeps the night playable
+      sun.current.intensity = 0.55 + light * 2.0;
       sun.current.color.set(duskness > 0.3 ? '#ffc58a' : light < 0.2 ? '#8fa3d9' : '#fff3df');
     }
     if (hemi.current) {
-      hemi.current.intensity = 0.35 + light * 0.75;
-      hemi.current.color.set(light < 0.25 ? '#3a4a7a' : '#dfeeff');
-      hemi.current.groundColor.set(light < 0.25 ? '#151520' : '#b9a27e');
+      hemi.current.intensity = 0.8 + light * 0.3;
+      hemi.current.color.set(light < 0.25 ? '#7d8fc9' : '#dfeeff');
+      hemi.current.groundColor.set(light < 0.25 ? '#3a3a52' : '#b9a27e');
     }
     lamp.emissiveIntensity = light < 0.35 ? 2.2 : 0.3;
     if (starsRef.current) starsRef.current.visible = light < 0.2;

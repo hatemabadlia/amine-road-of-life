@@ -83,6 +83,9 @@ export interface Spawn {
   nonce: number;
 }
 
+/** Timestamp of the last dialogue close: guards against click-through onto the prompt. */
+export const uiTiming = { dialogueClosedAt: 0 };
+
 /** Live player pose written by the 3D controller every frame (not reactive). */
 export const livePose = { x: 0, y: 1, z: 0, yaw: 0, speed: 0 };
 
@@ -140,6 +143,7 @@ interface GameStore {
   setBigMap: (v: boolean) => void;
   updateSettings: (p: Partial<Settings>) => void;
   unstuck: () => void;
+  footballGoal: () => void;
   pushToast: (text: string, tone?: Toast['tone']) => void;
 }
 
@@ -282,6 +286,7 @@ export const useGame = create<GameStore>((set, get) => {
 
   const onDialogueEnd = (source: DialogueSource) => {
     const g = get().game!;
+    uiTiming.dialogueClosedAt = performance.now();
     set({ dialogue: null });
     switch (source.kind) {
       case 'opening':
@@ -534,6 +539,16 @@ export const useGame = create<GameStore>((set, get) => {
         }
       }
       set({ spawn: best, paused: false });
+    },
+
+    footballGoal: () => {
+      const g = get().game;
+      get().pushToast('قووول! ⚽', 'good');
+      if (!g || g.sides.includes('goal')) return;
+      // a goal lifts Amine's confidence a little, once per chapter
+      g.sides.push('goal');
+      toastsFrom(applyFx(g, { confidence: 2 }));
+      commit();
     },
 
     pushToast: (text, tone = 'info') => {

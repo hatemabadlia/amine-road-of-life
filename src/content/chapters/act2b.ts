@@ -1,6 +1,6 @@
 // ACT II — Chapters 35–45: adolescence, age 15. Crisis, help, and the crossroads.
 import type { Chapter } from '../../types/game';
-import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, use, when } from './dsl';
+import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, act, when } from './dsl';
 
 const NA = (t: string, extra?: Parameters<typeof say>[2]) => say('nadia', t, extra);
 const SA = (t: string, extra?: Parameters<typeof say>[2]) => say('samia', t, extra);
@@ -18,7 +18,7 @@ const ch35: Chapter = {
   cast: { sofiane: 'square', walid: 'lycee_courtyard' },
   opening: [N('خمسطاش سنة. عام الشهادة. على لوحة الإدارة: "قائمة التلاميذ المهددين بالإقصاء".')],
   objectives: [
-    use('list', 'شوف القائمة', 'lycee_desk', [
+    act('list', 'شوف القائمة', 'lycee_desk', [
       when(
         'attendance<55',
         [N('أمين... اسمك في القائمة. خمسة غيابات زايدين ويتقصى من الامتحان.'), fx({ confidence: -6 }, { set: ['exclusion_warning'] })],
@@ -198,7 +198,7 @@ const ch38: Chapter = {
       when('salah_recommends', [BA('صالح قالي عليك. ما يقولش على حتى واحد بلا ما يعرفو.')]),
       BA('الخدمة هنا: النجارة والتلحيم. تبدا بالتنظيف وتشوف. الشهرية ثلاثة آلاف في الشهر.'),
     ]),
-    use('work', 'اخدم في الطاولة', 'workbench', [
+    act('work', 'اخدم في الطاولة', 'workbench', [
       N('النشارة، الريحة تاع الخشب، الصوت تاع المنشار.'),
       BA('شوف. قيس مرتين، قص مرة.'),
       choose(
@@ -360,7 +360,7 @@ const ch40: Chapter = {
       when('front_seat', [IM('من نهار قعدت القدّام في أول نهار، عرفت بلي أنت جدّي.')]),
       choose('imene_help', opt('صحّيتي! نراجعو مع بعض؟', 'good', { set: ['study_with_imene'], fx: { grades: 4 } }), opt('شكرا، نتدبّر.', 'neutral', {})),
     ]),
-    use('study', 'راجع في بيتك', 'desk', [
+    act('study', 'راجع في بيتك', 'desk', [
       N('ليلة. جوج. ثلاثة. المعادلات بدات تولّي صحاب.'),
       choose(
         'study_pace',
@@ -408,7 +408,7 @@ const ch41: Chapter = {
         opt('ما نحبش النوادي.', 'neutral', {}),
       ),
     ]),
-    use('club', 'أول نشاط', 'lycee_desk', [
+    act('club', 'أول نشاط', 'lycee_desk', [
       when('joined_club', [N('روبو صغير يمشي على خط أسود. كي مشى، الكل صفّق. أمين حس بحاجة جديدة: الفرحة النظيفة.')]),
       when('volunteer', [N('توزيع القفة تاع رمضان على العائلات. شيباني بكى كي شاف أمين. "ربي يرضى عليك يا وليدي."')]),
       when('!joined_club & !volunteer', [N('أمين قعد يتفرّج. الضحك تاع النادي وصل حتى لعندو.')]),
@@ -468,7 +468,7 @@ const ch42: Chapter = {
         ],
       ),
     ]),
-    use('night', 'الفراش', 'bed', [
+    act('night', 'الفراش', 'bed', [
       when('full_truth', [N('أول ليلة من سنين، بلا حتى سر تحت الماطلة.')]),
       when('denied_truth', [N('السر يكبر. والدار تصغار.')]),
       when('clean_record', [N('ليلة عادية. هاذي هي النعمة.')]),
@@ -569,7 +569,7 @@ const ch44: Chapter = {
   cast: { imene: 'lycee_class', walid: 'home_living' },
   opening: [N('سيمانتين. الكتب فوق المكتب كالسور.')],
   objectives: [
-    use('plan', 'المكتب — دير برنامج', 'desk', [
+    act('plan', 'المكتب — دير برنامج', 'desk', [
       N('ورقة بيضا، وقلم أحمر. أربعطاش نهار، ستة مواد.'),
       A('الرياضيات أصعب حاجة... نبدا بيها ولا نخلّيها للآخر؟'),
       choose(
@@ -607,7 +607,7 @@ const ch45: Chapter = {
   cast: { walid: 'lycee_gate', imene: 'lycee_gate', mourad: 'crossroads' },
   opening: [N('النتائج على الحيط. الكل يدفع باش يشوف.')],
   objectives: [
-    use('results', 'شوف النتائج', 'lycee_desk', [
+    act('results', 'شوف النتائج', 'lycee_desk', [
       when(
         'grades>=55 & attendance>=45 & !gave_up_exam',
         [

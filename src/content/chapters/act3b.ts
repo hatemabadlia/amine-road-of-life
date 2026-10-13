@@ -1,6 +1,6 @@
 // ACT III — Chapters 58–68: age 17–18. Harvest, decision, and the road of life.
 import type { Chapter } from '../../types/game';
-import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, use, when } from './dsl';
+import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, act, when } from './dsl';
 
 const BA = (t: string, extra?: Parameters<typeof say>[2]) => say('bachir', t, extra);
 const MU = (t: string, extra?: Parameters<typeof say>[2]) => say('mustapha', t, extra);
@@ -67,7 +67,7 @@ const ch59: Chapter = {
   opening: [N('ثمنطاش سنة. النهار اللي كل شي يستنّاه.'), M('أمين، كول حاجة قبل ما تخرج. ربي يوفقك.')],
   objectives: [
     goto('to_exam_study', 'روح لمركز الامتحان — الثانوية', 'lycee_class', { if: 'path_study', deadline: '08:00', onLate: { fx: { grades: -5 }, note: 'وصلت متأخر للبكالوريا!' } }),
-    use(
+    act(
       'bac',
       'البكالوريا — اقعد في بلاصتك',
       'lycee_desk',
@@ -102,7 +102,7 @@ const ch59: Chapter = {
       { if: 'path_vocational' },
     ),
     goto('to_workshop', 'روح للورشة — الخدمة الكبيرة', 'workshop', { if: 'path_craft' }),
-    use(
+    act(
       'craft_test',
       'الباب الخشبي — خدمة المعلّم',
       'workbench',
@@ -119,7 +119,7 @@ const ch59: Chapter = {
       { if: 'path_craft' },
     ),
     goto('to_souk', 'روح للسوق — أول نهار في الطبلة', 'souk', { if: 'path_business | path_undecided' }),
-    use(
+    act(
       'market',
       'الطبلة تاعك في السوق',
       'stall',
@@ -239,7 +239,7 @@ const ch62: Chapter = {
         opt('نشري موطو صغيرة بالكريدي.', 'bad', { set: ['moto_debt'], fx: { risk: 6, money: -1000 } }),
       ),
     ]),
-    use('think', 'الفوارة', 'fountain', [
+    act('think', 'الفوارة', 'fountain', [
       when('invested_future', [N('أمين شرى الحاجة اللي يحتاجها: أدوات، كتب، ولا سلعة. ماشي فرحة اليوم. فرحة الغد.'), fx({ grades: 3, confidence: 3 })]),
       when('bought_moto', [N('الموطو تجري. الريح في الوجه. والحصالة فارغة.')]),
       when('moto_debt', [N('الكريدي كل شهر. والموطو تحتاج إصلاح.')]),
@@ -264,7 +264,7 @@ const ch63: Chapter = {
   start: { spot: 'home_bedroom', time: '22:00' },
   opening: [N('ورقة بيضا. قلم. وعشرة سنين من الصحبة.'), N('من الطاقة، القاطعة فارغة. الضو تاع العمود يرمش.')],
   objectives: [
-    use('write', 'اكتب الرسالة في المكتب', 'desk', [
+    act('write', 'اكتب الرسالة في المكتب', 'desk', [
       when('mourad_recovering', [N('مراد في الشهر العاشر من التعافي. يخدم في ورشة تاع المركز.')]),
       when('mourad_relapsed', [N('مراد رجع للطريق. ما ردّش على الميساجات من شهرين.')]),
       when('!mourad_recovering & !mourad_relapsed', [N('مراد... وين راه؟ آخر مرة شافو في الساحة، ضعيف، وحدو.')]),
@@ -315,7 +315,7 @@ const ch64: Chapter = {
         opt('ما عنديش الوقت...', 'neutral', { fx: { confidence: -3 } }),
       ),
     ]),
-    use(
+    act(
       'shop',
       'افتح الحانوت',
       'counter',
@@ -414,7 +414,7 @@ const ch66: Chapter = {
   cast: { baba: 'grandpa', jeddi: 'grandpa' },
   opening: [N('جدّي الطاهر كبر بزاف. بصح الزيتونة مازالت تعطي.')],
   objectives: [
-    use('harvest', 'اجني الزيتون مع جدّك وبابا', 'olive_tree', [
+    act('harvest', 'اجني الزيتون مع جدّك وبابا', 'olive_tree', [
       J('تفكّر كي كنت صغير وتعيا بعد ساعة؟'),
       A('نتفكّر يا جدّي. دروك نعيا بعد ساعتين.'),
       J('ههه. هاذا هو الكبر.'),
@@ -454,7 +454,7 @@ const ch67: Chapter = {
   start: { spot: 'home_bedroom', time: '22:00' },
   opening: [N('الليل. الحومة ساكتة. الزيتونة الصغيرة في طاسة فوق الطاقة.')],
   objectives: [
-    use('think', 'المكتب — الورقة الأخيرة', 'desk', [
+    act('think', 'المكتب — الورقة الأخيرة', 'desk', [
       N('أمين كتب في ورقة: "شكون نحب نكون؟"'),
       when('bac_passed', [N('ملف الجامعة واجد. الطب؟ الهندسة؟ الإعلام الآلي؟')]),
       when('training_done', [N('الشهادة المهنية في الدرج. وعرض من شركة كهرباء.')]),
@@ -467,7 +467,7 @@ const ch67: Chapter = {
         opt('نقعد نشوف. ما كانش زربة.', 'neutral', { set: ['wait_path'] }),
       ),
     ]),
-    use(
+    act(
       'restart',
       'البداية الجديدة',
       'bed',

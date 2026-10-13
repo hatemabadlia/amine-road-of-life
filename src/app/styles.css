@@ -806,8 +806,9 @@ select:focus-visible {
     top: 120px;
   }
   .prompt {
-    bottom: 190px;
+    bottom: 296px;
     font-size: 16px;
+    max-width: calc(100vw - 32px);
   }
   .bars {
     grid-template-columns: 1fr;

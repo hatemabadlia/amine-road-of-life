@@ -18,10 +18,16 @@ export function CameraRig() {
   const { world, rapier } = useRapier();
   const look = useRef(new THREE.Vector3(livePose.x, 1.5, livePose.z));
   const init = useRef(false);
+  const spawnNonce = useRef(-1);
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
     const st = useGame.getState();
+    if (st.spawn.nonce !== spawnNonce.current) {
+      // teleports (new chapter, continue, unstuck) snap the camera instead of sweeping through walls
+      spawnNonce.current = st.spawn.nonce;
+      init.current = false;
+    }
     const sens = st.settings.sensitivity;
     const age = st.game?.age ?? 10;
     const headH = 1.45 * (0.76 + 0.26 * Math.max(0, Math.min(1, (age - 10) / 8)));
@@ -87,9 +93,11 @@ export function CameraRig() {
     const reduce = st.settings.reducedMotion;
     if (!init.current) {
       camera.position.copy(tmpDesired);
+      look.current.copy(tmpTarget);
       init.current = true;
-    } else if (clipped) {
-      camera.position.lerp(tmpDesired, 1 - Math.exp(-30 * dt));
+    } else if (clipped && camera.position.distanceTo(tmpTarget) > tmpDesired.distanceTo(tmpTarget)) {
+      // never let smoothing carry the camera behind an obstacle
+      camera.position.copy(tmpDesired);
     } else {
       camera.position.lerp(tmpDesired, reduce ? 1 : 1 - Math.exp(-10 * dt));
     }

@@ -1,6 +1,6 @@
 // ACT I — Chapters 1–5: the detailed playable slice.
 import type { Chapter } from '../../types/game';
-import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, use, when } from './dsl';
+import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, act, when } from './dsl';
 
 const ch1: Chapter = {
   id: 1,
@@ -18,7 +18,7 @@ const ch1: Chapter = {
     A('...خمس دقايق برك يا ماما.'),
   ],
   objectives: [
-    use('wake', 'نوض من الفراش', 'bed', [
+    act('wake', 'نوض من الفراش', 'bed', [
       A('آآه... البرد.'),
       choose(
         'wake_up',
@@ -47,8 +47,8 @@ const ch1: Chapter = {
         }),
       ),
     ]),
-    use('wash', 'روح اغسل وجهك', 'sink', [N('الما بارد بزاف!'), A('برررر... ضرك فقت.'), fx({ health: 1 })]),
-    use('breakfast', 'فطر مع العائلة', 'kitchen_table', [
+    act('wash', 'روح اغسل وجهك', 'sink', [N('الما بارد بزاف!'), A('برررر... ضرك فقت.'), fx({ health: 1 })]),
+    act('breakfast', 'فطر مع العائلة', 'kitchen_table', [
       N('قهوة بالحليب، خبز الدار وشوية زيت زيتون من عند جدّك.'),
       say('selma', 'أمين! كليتلي الخبزة تاعي!'),
       A('هاهي، هاهي، خوذ نصها.'),
@@ -160,7 +160,7 @@ const ch1: Chapter = {
       deadline: '08:00',
       onLate: { set: ['late_ch1'], fx: { attendance: -3 }, note: 'فات الوقت! راك متأخر.' },
     }),
-    use(
+    act(
       'class',
       'ادخل للقسم واقعد في بلاصتك',
       'school_desk',
@@ -293,7 +293,7 @@ const ch2: Chapter = {
       A('واخا يا ماما.'),
     ]),
     goto('to_shop', 'روح لحانوت عمي صالح', 'hanout'),
-    use('buy', 'اشري الخبز والحليب', 'counter', [
+    act('buy', 'اشري الخبز والحليب', 'counter', [
       say('salah', 'صباح الخير يا أمين! واش تحب؟'),
       A('جوج خبزات وكيس حليب يا عمي صالح.'),
       say('salah', 'خبزة بعشرة، الحليب بخمسة وعشرين... خمسة وأربعين دينار.', { fx: { money: -45 } }),
@@ -425,7 +425,7 @@ const ch3: Chapter = {
       ],
       { if: 'went_to_kamel' },
     ),
-    use(
+    act(
       'cig_shop',
       'روح للحانوت',
       'counter',
@@ -494,7 +494,7 @@ const ch4: Chapter = {
     M('أمين، غدوة عندك فرض في الحساب. راجع قبل ما تخرج!'),
   ],
   objectives: [
-    use('study_first', 'المكتب — راجع قبل الماتش ولا لا؟', 'desk', [
+    act('study_first', 'المكتب — راجع قبل الماتش ولا لا؟', 'desk', [
       N('كراس الحساب مفتوح. من الطاقة تسمع الصغار يعيّطو: "أمين! الماتش!"'),
       choose(
         'study_before',
@@ -549,7 +549,7 @@ const ch4: Chapter = {
       pass(30),
     ]),
     goto('home_after', 'ارجع للدار', 'home_living', { deadline: '19:00', onLate: { fx: { anger: 5 }, note: 'الليل طاح.' } }),
-    use(
+    act(
       'night_study',
       'الفرض غدوة — راجع في الليل',
       'desk',
@@ -602,7 +602,7 @@ const ch5: Chapter = {
       deadline: '08:00',
       onLate: { set: ['late_ch5'], fx: { attendance: -3 }, note: 'وصلت متأخر نهار الفرض!' },
     }),
-    use(
+    act(
       'exam',
       'الفرض — اقعد في بلاصتك',
       'school_desk',
@@ -676,7 +676,7 @@ const ch5: Chapter = {
       ],
       { if: 'will_deliver' },
     ),
-    use(
+    act(
       'hide_choice',
       'الاستدعاء في الكارطابل... قبل ما تدخل للدار',
       'bed',

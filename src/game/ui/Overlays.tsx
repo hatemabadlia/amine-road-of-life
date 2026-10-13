@@ -14,7 +14,14 @@ export function ChapterCard() {
   useEffect(() => {
     if (!card) return;
     btn.current?.focus();
+    // ignore keys for a moment so mashing through the previous dialogue doesn't skip the card
+    const shownAt = performance.now();
     const onKey = (e: KeyboardEvent) => {
+      if ((e.code === 'Enter' || e.code === 'Space') && (e.repeat || performance.now() - shownAt < 900)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       if (e.code === 'Enter' || e.code === 'Space') {
         e.preventDefault();
         e.stopPropagation();

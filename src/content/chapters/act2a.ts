@@ -1,6 +1,6 @@
 // ACT II — Chapters 23–34: adolescence, ages 13–14.
 import type { Chapter } from '../../types/game';
-import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, use, when } from './dsl';
+import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, act, when } from './dsl';
 
 const SO = (t: string, extra?: Parameters<typeof say>[2]) => say('sofiane', t, extra);
 const IM = (t: string, extra?: Parameters<typeof say>[2]) => say('imene', t, extra);
@@ -30,7 +30,7 @@ const ch23: Chapter = {
       SO('هيه، أنتوما الجداد. هنا الساحة عندها قوانين.'),
       N('سفيان. أطول واحد في الساحة، ودايرين بيه خمسة.'),
     ]),
-    use('seat', 'القسم — اختار بلاصتك', 'lycee_desk', [
+    act('seat', 'القسم — اختار بلاصتك', 'lycee_desk', [
       NA('صباح الخير. أنا الأستاذة نادية، رياضيات. اختارو بلايصكم بالعقل.'),
       N('القدّام: إيمان، الأولى في القسم الفارط. اللور: سفيان وجماعتو يضحكو.'),
       choose(
@@ -108,7 +108,7 @@ const ch24: Chapter = {
         opt('ما عنديش الوقت.', 'neutral', {}),
       ),
     ]),
-    use(
+    act(
       'exam_day',
       'نهار الفرض — اقعد في بلاصتك',
       'lycee_desk',
@@ -172,7 +172,7 @@ const ch25: Chapter = {
       ),
     ]),
     goto('home', 'ارجع للدار', 'home_bedroom'),
-    use('mirror', 'خمّم في بيتك', 'bed', [
+    act('mirror', 'خمّم في بيتك', 'bed', [
       when(
         'smoked',
         [
@@ -211,7 +211,7 @@ const ch26: Chapter = {
   opening: [N('الحصة الأولى: تاريخ. الشلة في القهوة تاع الساحة.')],
   objectives: [
     goto('crossroads', 'القاطعة — المدرسة على اليسار، الساحة على اليمين', 'crossroads'),
-    use('decide', 'خمّم', 'street_sign', [
+    act('decide', 'خمّم', 'street_sign', [
       when('joined_crew | crew_friend', [N('ميساج من سفيان: "القهوة. دروك."')], [N('ميساج من مراد: "القهوة؟ الكل هنا."')]),
       choose(
         'skip3',
@@ -238,7 +238,7 @@ const ch26: Chapter = {
       { if: 'skipped_ch26' },
     ),
     goto('school', 'روح للإكمالية', 'lycee_gate', { if: 'went_class_26', deadline: '08:15', onLate: { fx: { attendance: -2 } } }),
-    use('class', 'القسم', 'lycee_desk', [NA('الدرس اليوم: النسب المئوية.'), fx({ grades: 4 })], { if: 'went_class_26', time: 360 }),
+    act('class', 'القسم', 'lycee_desk', [NA('الدرس اليوم: النسب المئوية.'), fx({ grades: 4 })], { if: 'went_class_26', time: 360 }),
     goto('home', 'ارجع للدار', 'home_living'),
     talk('fatiha', 'خالتي فتيحة عند الباب', 'fatiha', [
       when(
@@ -275,7 +275,7 @@ const ch27: Chapter = {
   cast: { sofiane: 'square', salah: 'hanout' },
   opening: [N('آخر الشهر. الجيب فارغ والطلبات كثيرة.')],
   objectives: [
-    use('count', 'احسب دراهمك في الحصالة', 'piggy', [
+    act('count', 'احسب دراهمك في الحصالة', 'piggy', [
       N('أمين حسب: الفليكسي، القهوة مع الصحاب، الحوايج...'),
       when('smoking_habit', [N('والدخان. كل نهار، باكية تمشي.'), fx({ money: -60, health: -3 })]),
       choose(
@@ -296,7 +296,7 @@ const ch27: Chapter = {
         }),
       ),
     ]),
-    use('work', 'الحانوت — عمي صالح يحتاج يد', 'boxes', [
+    act('work', 'الحانوت — عمي صالح يحتاج يد', 'boxes', [
       say('salah', 'أمين، كبرت! الجمعة والسبت نحتاج واحد. خمسمية في السيمانة.'),
       choose(
         'weekend_job',
@@ -504,7 +504,7 @@ const ch30: Chapter = {
       ),
     ]),
     goto('home', 'ارجع للدار', 'home_bedroom'),
-    use('night', 'الفراش', 'bed', [
+    act('night', 'الفراش', 'bed', [
       when(
         'amine_used',
         [
@@ -636,7 +636,7 @@ const ch32: Chapter = {
         opt('نسكت.', 'neutral', { fx: { parents: -3 } }),
       ),
     ]),
-    use('alone', 'بيتك', 'desk', [
+    act('alone', 'بيتك', 'desk', [
       N('أمين قاعد وحدو. على المكتب، صورة قديمة: هو وبابا في البحر، عندو ستة سنين.'),
       when('father_trust_broken', [N('الثقة ماشي حاجة تتعطى مرة وحدة. تتعطى كل نهار. ويقدر يتسحب كل نهار.')]),
     ]),
@@ -714,7 +714,7 @@ const ch34: Chapter = {
   cast: { kamel: 'souk', sofiane: 'souk' },
   opening: [N('السوق تاع الجمعة. عباد كثير، وطابلة صغيرة فيها ثلاث كارطات.')],
   objectives: [
-    use('game', 'شوف الطابلة', 'stall', [
+    act('game', 'شوف الطابلة', 'stall', [
       say('kamel', 'وين الملكة؟ حط ميتين، تربح أربعمية! ساهلة!'),
       N('واحد قبل أمين ربح جوج مرات. الملكة واضحة.'),
       choose(

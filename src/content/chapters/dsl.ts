@@ -51,7 +51,7 @@ export const talk = (id: string, text: string, target: string, dialogue: Step[],
   dialogue,
   ...extra,
 });
-export const use = (id: string, text: string, target: string, dialogue: Step[], extra: Omit<ObjExtra, 'dialogue'> = {}): Objective => ({
+export const act = (id: string, text: string, target: string, dialogue: Step[], extra: Omit<ObjExtra, 'dialogue'> = {}): Objective => ({
   id,
   text,
   type: 'use',
