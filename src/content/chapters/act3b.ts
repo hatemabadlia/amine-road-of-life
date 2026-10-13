@@ -4,7 +4,6 @@ import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, use, when } fro
 
 const BA = (t: string, extra?: Parameters<typeof say>[2]) => say('bachir', t, extra);
 const MU = (t: string, extra?: Parameters<typeof say>[2]) => say('mustapha', t, extra);
-const NA = (t: string, extra?: Parameters<typeof say>[2]) => say('nadia', t, extra);
 const J = (t: string, extra?: Parameters<typeof say>[2]) => say('jeddi', t, extra);
 
 const ch58: Chapter = {

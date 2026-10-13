@@ -1,0 +1,30 @@
+// Dev helper: drive the game in headless Chromium and take screenshots.
+import { chromium } from '@playwright/test';
+const out = process.argv[2] ?? 'shots';
+const url = process.argv[3] ?? 'http://localhost:5199/?e2e=1';
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const logs = [];
+page.on('console', (m) => logs.push(`[${m.type()}] ${m.text()}`));
+page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
+await page.goto(url);
+await page.waitForTimeout(1500);
+await page.screenshot({ path: `${out}/01-menu.png` });
+await page.click('[data-testid=new-game]');
+await page.waitForSelector('[data-testid=chapter-card]', { timeout: 60000 });
+await page.waitForTimeout(1500);
+await page.screenshot({ path: `${out}/02-card.png` });
+await page.click('[data-testid=start-chapter]');
+await page.waitForTimeout(800);
+await page.screenshot({ path: `${out}/03-opening.png` });
+for (let i = 0; i < 4; i++) { await page.keyboard.press('Space'); await page.waitForTimeout(250); await page.keyboard.press('Space'); await page.waitForTimeout(250); }
+await page.waitForTimeout(800);
+await page.screenshot({ path: `${out}/04-bedroom.png` });
+await page.keyboard.down('KeyW'); await page.waitForTimeout(1200); await page.keyboard.up('KeyW');
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${out}/05-moved.png` });
+const pose = await page.evaluate(() => window.__AMINE__.pose());
+const st = await page.evaluate(() => { const s = window.__AMINE__.state(); return { phase: s.game.phase, done: s.game.done, dialogue: !!s.dialogue }; });
+console.log('pose', JSON.stringify(pose), JSON.stringify(st));
+console.log(logs.filter((l) => !l.includes('Download the React DevTools')).slice(0, 30).join('\n'));
+await browser.close();

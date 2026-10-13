@@ -1,6 +1,6 @@
 // ACT I — Chapters 1–5: the detailed playable slice.
 import type { Chapter } from '../../types/game';
-import { A, B, M, MO, N, choose, fx, goto, note, opt, pass, say, talk, use, when } from './dsl';
+import { A, B, M, MO, N, choose, fx, goto, opt, pass, say, talk, use, when } from './dsl';
 
 const ch1: Chapter = {
   id: 1,
@@ -94,7 +94,12 @@ const ch1: Chapter = {
           then: [MO('...واخا، بصح العشية الماتش عليك!'), N('مراد مشى معاك. ساعات كلمة وحدة تبدّل نهار كامل.')],
         }),
       ),
-    ]),
+    ], {
+      moves: [
+        { npc: 'mourad', spot: 'school_courtyard', if: 'convinced_mourad_ch1' },
+        { npc: 'mourad', spot: 'football', if: '!convinced_mourad_ch1' },
+      ],
+    }),
     // --- skipped school ---
     goto('to_field', 'روح مع مراد للملعب', 'football', { if: 'skipped_ch1' }),
     talk(

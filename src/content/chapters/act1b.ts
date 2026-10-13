@@ -454,7 +454,7 @@ const ch12: Chapter = {
         }),
         opt('ندخّل حتى أنا حاجة.', 'bad', { set: ['stole_too'], fx: { risk: 10, honesty: -10 } }),
       ),
-    ]),
+    ], { moves: [{ npc: 'mourad', spot: 'hanout_front' }] }),
     talk('mourad_out', 'مراد برا', 'mourad', [
       when('confront_theft', [
         A('مراد، رجّعها. عمي صالح ما عندو والو.'),

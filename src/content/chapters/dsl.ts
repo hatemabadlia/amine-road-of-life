@@ -33,6 +33,7 @@ type ObjExtra = {
   onLate?: LateRule;
   time?: number;
   skipTo?: string;
+  moves?: { npc: string; spot: string; if?: string }[];
 };
 
 export const goto = (id: string, text: string, target: string, extra: ObjExtra = {}): Objective => ({

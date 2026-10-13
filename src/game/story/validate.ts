@@ -127,7 +127,9 @@ export function validateChapters(chapters: Chapter[], extraSteps: Step[][] = [])
       if (o.type === 'use' && !objectById.has(o.target)) err(ch.id, where, `Unknown object "${o.target}"`);
       if (o.type === 'talk') {
         if (!characterById.has(o.target)) err(ch.id, where, `Unknown character "${o.target}"`);
-        else if (!present.has(o.target)) err(ch.id, where, `Character "${o.target}" is not present in this chapter`);
+        else if (!present.has(o.target) && !ch.objectives.some((x) => x.moves?.some((m) => m.npc === o.target))) {
+          err(ch.id, where, `Character "${o.target}" is not present in this chapter`);
+        }
       }
       if ((o.type === 'talk' || o.type === 'use') && !o.dialogue?.length) err(ch.id, where, 'Interaction without dialogue');
       if (o.deadline) {
@@ -145,6 +147,11 @@ export function validateChapters(chapters: Chapter[], extraSteps: Step[][] = [])
         }
       }
       checkFx(ch.id, where, o.onLate?.fx);
+      for (const m of o.moves ?? []) {
+        if (!characterById.has(m.npc)) err(ch.id, where, `Move of unknown character "${m.npc}"`);
+        if (!spotById.has(m.spot)) err(ch.id, where, `Move to unknown spot "${m.spot}"`);
+        checkCond(ch.id, where, m.if);
+      }
     });
     // a chapter must have at least one unconditional objective so it can never be empty
     if (!ch.objectives.some((o) => !o.if)) err(ch.id, 'objectives', 'All objectives are conditional');

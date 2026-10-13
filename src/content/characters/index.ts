@@ -167,7 +167,7 @@ export const CHARACTERS: Character[] = [
     id: 'jeddi',
     name: 'جدّي الطاهر',
     role: 'جدّ أمين',
-    home: [-20, -56],
+    home: [-21, -56.5],
     color: '#9b8b6e',
     look: { skin: '#b98a63', shirt: '#d8cfbd', pants: '#8a7b63', hair: '#eee', scale: 0.98, beard: true, cap: '#f5f5f5' },
     ambient: [{ lines: ['تعال يا وليدي، اقعد حدايا.', 'الزيتونة كيما الراجل، تكبر بالصبر.'] }],

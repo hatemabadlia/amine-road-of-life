@@ -91,6 +91,8 @@ export interface Objective {
   time?: number;
   /** when this objective becomes active, jump the clock forward to this time (next day if needed) */
   skipTo?: string;
+  /** characters that relocate once this objective is completed */
+  moves?: { npc: string; spot: string; if?: string }[];
 }
 
 export interface Chapter {
