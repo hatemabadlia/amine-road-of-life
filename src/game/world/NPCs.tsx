@@ -3,9 +3,12 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { BallCollider, CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
-import { CHARACTERS, characterById, type Look } from '../../content/characters';
-import { Humanoid, type HumanoidHandle } from '../player/Humanoid';
-import { chapterOf, livePose, useGame } from '../store';
+import { CHARACTERS, characterById } from '../../content/characters';
+import type { HumanoidHandle } from '../player/Humanoid';
+import { Character } from '../player/SkinnedHuman';
+import { activeObjective, chapterOf, livePose, useGame } from '../store';
+import { agents, arrived, face, makeAgent, stepAgent, walkTo } from './agents';
+import { nav, pathLength } from './nav';
 import { castPositions } from './cast';
 import { ballRef, npcPositions, useBall } from '../engine/refs';
 import { sound } from '../audio/sound';
@@ -32,48 +35,89 @@ function nameTexture(name: string, color: string) {
   return t;
 }
 
+/** Characters who are busy with their hands when standing at their usual place. */
+const WORKERS = new Set(['bachir', 'jeddi']);
+
 function NPC({ id, x, z }: { id: string; x: number; z: number }) {
   const ch = characterById.get(id)!;
   const group = useRef<THREE.Group>(null);
   const model = useRef<HumanoidHandle>(null);
   const tag = useRef<THREE.Sprite>(null);
+  const body = useRef<RapierRigidBody>(null);
   const tex = useMemo(() => nameTexture(ch.name, ch.color), [ch]);
   const h = 1.8 * ch.look.scale;
-  const yaw = useRef(Math.atan2(-x, -z)); // initially face the map centre
+  const agent = useMemo(() => {
+    const a = makeAgent(x, z, 1.4);
+    a.yaw = Math.atan2(-x, -z); // initially face the map centre
+    return a;
+    // created once per mount: later target changes make the character walk
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const head = useMemo(() => new THREE.Vector3(agent.x, h * 0.85, agent.z), [agent, h]);
+  const atWork = WORKERS.has(id) && Math.hypot(x - ch.home[0], z - ch.home[1]) < 0.5;
 
   useEffect(() => {
-    npcPositions.set(id, new THREE.Vector3(x, h * 0.85, z));
+    agents.add(agent);
+    npcPositions.set(id, head);
     return () => {
+      agents.delete(agent);
       npcPositions.delete(id);
     };
-  }, [id, x, z, h]);
+  }, [id, agent, head]);
 
-  useFrame((_, dt) => {
-    const dx = livePose.x - x;
-    const dz = livePose.z - z;
-    const d = Math.hypot(dx, dz);
-    if (d < 5) {
-      const target = Math.atan2(dx, dz);
-      let diff = target - yaw.current;
-      while (diff > Math.PI) diff -= Math.PI * 2;
-      while (diff < -Math.PI) diff += Math.PI * 2;
-      yaw.current += diff * (1 - Math.exp(-5 * dt));
-    }
-    if (group.current) group.current.rotation.y = yaw.current;
+  // a new placement within the chapter: walk there (or slip away unseen when far from Amine)
+  useEffect(() => {
+    if (Math.hypot(agent.x - x, agent.z - z) < 0.4) return;
+    const unseen = (px: number, pz: number) => Math.hypot(livePose.x - px, livePose.z - pz) > 38;
+    const snap = () => {
+      agent.x = x;
+      agent.z = z;
+      agent.path = null;
+    };
+    if (!nav.ready || (unseen(agent.x, agent.z) && unseen(x, z))) return snap();
+    if (!walkTo(agent, x, z) || !agent.path) return snap();
+    const len = pathLength([agent.x, agent.z], agent.path);
+    if (len > 140) return snap();
+    agent.pace = len > 22 ? 3.1 : 1.45;
+  }, [agent, x, z]);
+
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 0.1);
     const st = useGame.getState();
-    if (model.current) model.current.talking = st.dialogue?.view.kind === 'line' && st.dialogue.view.speaker === id;
-    if (tag.current) tag.current.visible = d > 2.2 && d < 9 && !st.dialogue;
+    const frozen = st.paused || st.card || !!st.dialogue;
+    const d = Math.hypot(livePose.x - agent.x, livePose.z - agent.z);
+    // someone Amine needs to talk to waits when he comes close
+    const obj = activeObjective(st.game);
+    const waiting = obj?.type === 'talk' && obj.target === id && d < 2.6;
+    const walking = !arrived(agent);
+    if (walking && !frozen && !waiting) stepAgent(agent, dt);
+    else agent.speed = 0;
+    if ((!walking || waiting) && d < 5) face(agent, livePose.x, livePose.z, dt);
+    body.current?.setNextKinematicTranslation({ x: agent.x, y: 0.9 * ch.look.scale, z: agent.z });
+    head.set(agent.x, h * 0.85, agent.z);
+    if (group.current) {
+      group.current.position.set(agent.x, 0, agent.z);
+      group.current.rotation.y = agent.yaw;
+    }
+    if (model.current) {
+      model.current.speed = agent.speed;
+      model.current.talking = st.dialogue?.view.kind === 'line' && st.dialogue.view.speaker === id;
+    }
+    if (tag.current) {
+      tag.current.position.set(agent.x, h + 0.35, agent.z);
+      tag.current.visible = d > 2.2 && d < 9 && !st.dialogue;
+    }
   });
 
   return (
     <>
-      <RigidBody type="fixed" colliders={false} position={[x, 0.9 * ch.look.scale, z]}>
+      <RigidBody ref={body} type="kinematicPosition" colliders={false} position={[agent.x, 0.9 * ch.look.scale, agent.z]}>
         <CapsuleCollider args={[0.9 * ch.look.scale - 0.28, 0.28]} />
       </RigidBody>
-      <group ref={group} position={[x, 0, z]}>
-        <Humanoid ref={model} look={ch.look} />
+      <group ref={group} position={[agent.x, 0, agent.z]}>
+        <Character ref={model} look={ch.look} working={atWork && arrived(agent)} />
       </group>
-      <sprite ref={tag} position={[x, h + 0.35, z]} scale={[1.3, 0.33, 1]}>
+      <sprite ref={tag} position={[agent.x, h + 0.35, agent.z]} scale={[1.3, 0.33, 1]}>
         <spriteMaterial map={tex} depthTest={false} transparent />
       </sprite>
     </>
@@ -91,88 +135,7 @@ export function StoryNPCs() {
   return (
     <>
       {placements.map((p) => (
-        <NPC key={`${chapterId}:${p.id}:${p.x.toFixed(1)}:${p.z.toFixed(1)}`} id={p.id} x={p.x} z={p.z} />
-      ))}
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Pedestrians walking loops on the sidewalks (ambient life)
-// ---------------------------------------------------------------------------
-const WALKER_LOOKS: Look[] = [
-  { skin: '#c99670', shirt: '#7f8c8d', pants: '#2c3e50', hair: '#222', scale: 1, style: 'short' },
-  { skin: '#d9a77c', shirt: '#a04000', pants: '#4a235a', hair: '#111', scale: 0.95, hijab: '#f5cba7' },
-  { skin: '#b98a63', shirt: '#f5f5f5', pants: '#7b7d7d', hair: '#ddd', scale: 0.98, beard: true, cap: '#fff' },
-  { skin: '#dcae85', shirt: '#2471a3', pants: '#1c2833', hair: '#3b2a20', scale: 0.7, style: 'short' },
-  { skin: '#c48b62', shirt: '#117a65', pants: '#212f3d', hair: '#111', scale: 1.02, style: 'short' },
-  { skin: '#e0b48c', shirt: '#884ea0', pants: '#1b2631', hair: '#2b1b14', scale: 0.92, hijab: '#2c3e50' },
-  { skin: '#c99670', shirt: '#e74c3c', pants: '#ecf0f1', hair: '#111', scale: 0.68, style: 'short' },
-  { skin: '#dcae85', shirt: '#27ae60', pants: '#ecf0f1', hair: '#3b2416', scale: 0.72, style: 'curly' },
-];
-
-const ROUTES: [number, number][][] = [
-  [[-60, -5], [60, -5]],
-  [[55, 5], [-55, 5]],
-  [[-5, -60], [-5, 40]],
-  [[5, 35], [5, -60]],
-  [[48, -12], [70, -12], [70, -27], [48, -27]],
-  [[-36, 9], [-12, 9]],
-  // kids kicking about on the pitch
-  [[15, 31], [34, 34], [30, 38], [16, 37]],
-  [[33, 18], [17, 24], [21, 17]],
-];
-
-function Walker({ look, route, offset, speedBoost = 0 }: { look: Look; route: [number, number][]; offset: number; speedBoost?: number }) {
-  const body = useRef<RapierRigidBody>(null);
-  const group = useRef<THREE.Group>(null);
-  const model = useRef<HumanoidHandle>(null);
-  const seg = useRef(0);
-  const pos = useRef(new THREE.Vector2(route[0][0], route[0][1]));
-  const speed = 1.1 + offset * 0.1 + speedBoost;
-  useEffect(() => {
-    // spread walkers along their route
-    pos.current.set(route[0][0] + (route[1][0] - route[0][0]) * offset * 0.15, route[0][1] + (route[1][1] - route[0][1]) * offset * 0.15);
-  }, [route, offset]);
-  useFrame((_, rawDt) => {
-    const dt = Math.min(rawDt, 0.05);
-    const st = useGame.getState();
-    const target = route[(seg.current + 1) % route.length];
-    const dx = target[0] - pos.current.x;
-    const dz = target[1] - pos.current.y;
-    const d = Math.hypot(dx, dz);
-    // stop politely when the player stands in the way
-    const pd = Math.hypot(livePose.x - pos.current.x, livePose.z - pos.current.y);
-    const moving = !st.paused && pd > 1.4;
-    if (d < 0.3) seg.current = (seg.current + 1) % route.length;
-    else if (moving) {
-      pos.current.x += (dx / d) * speed * dt;
-      pos.current.y += (dz / d) * speed * dt;
-    }
-    body.current?.setNextKinematicTranslation({ x: pos.current.x, y: 0.9 * look.scale, z: pos.current.y });
-    if (group.current) {
-      group.current.position.set(pos.current.x, 0, pos.current.y);
-      group.current.rotation.y = Math.atan2(dx, dz);
-    }
-    if (model.current) model.current.speed = moving ? speed : 0;
-  });
-  return (
-    <>
-      <RigidBody ref={body} type="kinematicPosition" colliders={false} position={[route[0][0], 0.9 * look.scale, route[0][1]]}>
-        <CapsuleCollider args={[0.9 * look.scale - 0.28, 0.28]} />
-      </RigidBody>
-      <group ref={group}>
-        <Humanoid ref={model} look={look} />
-      </group>
-    </>
-  );
-}
-
-export function Pedestrians() {
-  return (
-    <>
-      {ROUTES.map((r, i) => (
-        <Walker key={i} look={WALKER_LOOKS[i % WALKER_LOOKS.length]} route={r} offset={i} speedBoost={i >= 6 ? 1.8 : 0} />
+        <NPC key={`${chapterId}:${p.id}`} id={p.id} x={p.x} z={p.z} />
       ))}
     </>
   );

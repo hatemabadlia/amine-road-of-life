@@ -2,7 +2,7 @@
 // all static colliders (inside one fixed rigid body for efficiency).
 import { memo, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
+import { CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import { FOOTPRINTS, ROADS, WORLD_HALF } from './layout';
 import { facadeMaterial, flatMat, groundTexture, mat, PALETTE, rng } from './materials';
 import { Bench, Box, Car, Cyl, Door, Flag, HidingRoof, Lamp, Palm, RoofKit, Sign, Tree, WallLine, Window } from './primitives';
@@ -161,8 +161,11 @@ function Home() {
       {/* living room */}
       <Box p={[-29.6, 0.35, -13]} s={[0.6, 0.7, 1.8]} c="#5d4037" col />
       <Box p={[-29.55, 1.05, -13]} s={[0.08, 0.7, 1.3]} c="#111" />
-      <Box p={[-25, 0.22, -17.45]} s={[8, 0.44, 0.7]} c="#8e2c3a" col />
-      <Box p={[-25, 0.6, -17.7]} s={[8, 0.4, 0.2]} c="#a83246" />
+      {/* banquettes along the north wall, leaving the bedroom doorway (x ≈ -25) clear */}
+      <Box p={[-27.95, 0.22, -17.45]} s={[3.3, 0.44, 0.7]} c="#8e2c3a" col />
+      <Box p={[-27.95, 0.6, -17.7]} s={[3.3, 0.4, 0.2]} c="#a83246" />
+      <Box p={[-22.05, 0.22, -17.45]} s={[3.3, 0.44, 0.7]} c="#8e2c3a" col />
+      <Box p={[-22.05, 0.6, -17.7]} s={[3.3, 0.4, 0.2]} c="#a83246" />
       <Box p={[-25, 0.03, -13]} s={[4.5, 0.02, 3.2]} c="#b5442f" />
       <Cyl p={[-25, 0.2, -13]} r={0.55} h={0.35} c="#6e4b2a" />
       <mesh position={[-20.12, 1.8, -11]} rotation={[0, -Math.PI / 2, 0]} material={mat('#c9a227')}>
@@ -720,10 +723,19 @@ function Scatter() {
   );
 }
 
+/** The fixed body holding every static collider (walls, props); used to build the nav grid. */
+export const staticWorld: { body: RapierRigidBody | null } = { body: null };
+
 export const World = memo(function World({ age }: { age: number }) {
   return (
     <>
-      <RigidBody type="fixed" colliders={false}>
+      <RigidBody
+        type="fixed"
+        colliders={false}
+        ref={(b) => {
+          staticWorld.body = b;
+        }}
+      >
         <Ground />
         <Home />
         <Neighbor />

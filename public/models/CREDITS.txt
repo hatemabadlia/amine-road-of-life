@@ -1,0 +1,4 @@
+human.glb — "Animated Human" by Quaternius (https://quaternius.com), CC0 1.0 (public domain).
+Source: https://opengameart.org/content/animated-human-low-poly
+Converted from FBX to GLB with three.js; kept clips Idle, Walk, Run, Jump, Working (renamed Work).
+Per-character colours, shoes and accessories are applied at runtime (src/game/player/SkinnedHuman.tsx).

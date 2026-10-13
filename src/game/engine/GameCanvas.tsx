@@ -11,7 +11,9 @@ import { CameraRig } from '../camera/CameraRig';
 import { Interaction } from '../interaction/Interaction';
 import { ObjectiveMarker } from '../world/Markers';
 import { DayNight } from '../world/DayNight';
-import { Ball, Pedestrians, StoryNPCs } from '../world/NPCs';
+import { Ball, StoryNPCs } from '../world/NPCs';
+import { Townsfolk } from '../world/Townsfolk';
+import { NavBuilder } from '../world/NavBuilder';
 import { useGame } from '../store';
 import { input } from '../player/input';
 
@@ -37,7 +39,8 @@ function Scene({ onReady }: { onReady: () => void }) {
         <World age={age} />
         <Player />
         <StoryNPCs />
-        <Pedestrians />
+        <Townsfolk />
+        <NavBuilder />
         <Ball />
         <CameraRig />
         <Interaction />

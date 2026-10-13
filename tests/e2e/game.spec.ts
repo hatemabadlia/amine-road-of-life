@@ -8,6 +8,9 @@ declare global {
       goTo: (id: string) => boolean;
       objective: () => { id: string; type: string; target: string; text: string } | null;
       interact: () => void;
+      nav: () => { ready: boolean; w: number; blocked: number };
+      route: (a: string, b: string) => { points: number; length: number } | null;
+      places: () => string[];
     };
   }
 }
@@ -164,4 +167,18 @@ test('mobile layout shows touch controls and the joystick moves Amine', async ({
   await page.dispatchEvent('.joystick', 'pointerup', { pointerId: 7, clientX: cx, clientY: cy + 60, isPrimary: true, pointerType: 'touch' });
   const after = await page.evaluate(() => window.__AMINE__.pose());
   expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeGreaterThan(0.8);
+});
+
+test('every story place and object can be reached on foot from the front door', async ({ page }) => {
+  test.setTimeout(240_000);
+  await startNewGame(page);
+  await page.waitForFunction(() => window.__AMINE__.nav().ready, null, { timeout: 120_000 });
+  const ids: string[] = await page.evaluate(() => window.__AMINE__.places());
+  expect(ids.length).toBeGreaterThan(40);
+  const bad: string[] = [];
+  for (const id of ids) {
+    const r = await page.evaluate((x) => window.__AMINE__.route('home_door', x), id);
+    if (!r) bad.push(id);
+  }
+  expect(bad).toEqual([]);
 });

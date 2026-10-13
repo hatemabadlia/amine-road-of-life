@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type RapierRigidBody } from '@react-three/rapier';
-import { Humanoid, amineLook, type HumanoidHandle } from './Humanoid';
+import { amineLook, type HumanoidHandle } from './Humanoid';
+import { Character } from './SkinnedHuman';
 import { input, moveVector } from './input';
 import { livePose, useGame } from '../store';
 import { camState } from '../engine/refs';
@@ -154,7 +155,7 @@ export function Player() {
     <RigidBody key={age} ref={body} type="kinematicPosition" colliders={false} position={[spawn.x, 0.9 * scale + 0.15, spawn.z]} enabledRotations={[false, false, false]}>
       <CapsuleCollider ref={collider} args={[half, radius]} />
       <group ref={visual} position={[0, -0.9 * scale, 0]}>
-        <Humanoid ref={model} look={look} />
+        <Character ref={model} look={look} />
       </group>
     </RigidBody>
   );

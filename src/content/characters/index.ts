@@ -12,6 +12,8 @@ export interface Look {
   cap?: string;
   /** hair shape */
   style?: 'short' | 'bald' | 'curly' | 'long';
+  /** shoe colour (defaults: white trainers for kids, dark shoes for adults) */
+  shoes?: string;
 }
 
 export interface AmbientRule {
