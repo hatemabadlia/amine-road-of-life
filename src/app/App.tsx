@@ -6,6 +6,7 @@ import { EndingScreen } from './Ending';
 import { sound } from '../game/audio/sound';
 import { music, themeFor } from '../game/audio/music';
 import { exposeTestHooks } from './testHooks';
+import { CHAPTERS } from '../content/chapters';
 
 // the 3D engine (three.js + Rapier WASM) is only downloaded when play starts
 const GameScreen = lazy(() => import('./GameScreen').then((m) => ({ default: m.GameScreen })));
@@ -28,6 +29,9 @@ export function App() {
     sound.setVolumes(s.master, s.ambience, s.sfx);
     music.setVolume(s.music);
     exposeTestHooks();
+    // direct link to a chapter for testing: ?chapter=45
+    const direct = Number(new URLSearchParams(location.search).get('chapter'));
+    if (direct >= 1 && direct <= CHAPTERS.length && useGame.getState().screen === 'menu') useGame.getState().startAt(Math.floor(direct));
     // browsers only allow audio after a user gesture: unlock on the first one
     const unlock = () => sound.unlock();
     window.addEventListener('pointerdown', unlock, { once: true });

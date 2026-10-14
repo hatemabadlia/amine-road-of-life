@@ -33,6 +33,7 @@ import {
 } from './save/save';
 import { objectById, spotById } from './world/layout';
 import { quizSteps, withQuiz } from './story/quiz';
+import { GOOD, byTone, playChapter } from './story/simulate';
 import { sound } from './audio/sound';
 import { music } from './audio/music';
 
@@ -133,6 +134,8 @@ interface GameStore {
   ride: { to: string; started: number } | null;
 
   newGame: () => void;
+  /** new game that starts at any chapter; earlier chapters are played automatically on the good path */
+  startAt: (id: number) => void;
   continueGame: () => void;
   replayChapter: (id: number) => void;
   loadSnapshotsForMenu: () => void;
@@ -370,6 +373,21 @@ export const useGame = create<GameStore>((set, get) => {
       runner = null;
       set({ snapshots: { 1: structuredClone(g) } });
       set({ game: g, screen: 'game', card: true, dialogue: null, paused: false, journal: false, spawn: spawnForChapter(g), loadMessage: null });
+      persist();
+    },
+
+    startAt: (id) => {
+      const g = createState();
+      startChapter(g, CHAPTERS, 1);
+      const snapshots: Record<number, GameState> = { 1: structuredClone(g) };
+      const good = byTone(GOOD);
+      while (g.chapter < id) {
+        playChapter(g, CHAPTERS, good);
+        finishChapter(g, CHAPTERS, evaluateEnding);
+        snapshots[g.chapter] = structuredClone(g);
+      }
+      runner = null;
+      set({ snapshots, game: g, screen: 'game', card: true, dialogue: null, paused: false, journal: false, spawn: spawnForChapter(g), loadMessage: null });
       persist();
     },
 

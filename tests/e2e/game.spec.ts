@@ -512,3 +512,31 @@ test('chapter 53: Eid morning — prayer with Baba, forgiveness at home, the eid
   expect(g.chapter).toBe(54);
   expect(g.flags.fixed_table).toBe(true);
 });
+
+test('start from any chapter: pick chapter 45 in the menu and play it to the end', async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.goto(URL);
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(URL);
+  await page.getByTestId('pick-chapter').click();
+  await expect(page.getByTestId('pick-list').locator('.chapter-item')).toHaveCount(68);
+  await page.getByTestId('pick-45').click();
+  await page.getByTestId('confirm-pick').click();
+  await expect(page.getByTestId('chapter-card')).toContainText('مفترق الطرق', { timeout: 60_000 });
+  const g = await page.evaluate(() => window.__AMINE__.state().game);
+  expect(g.chapter).toBe(45);
+  expect(g.age).toBe(15);
+  expect(g.completed.length).toBe(44); // chapters 1–44 were played automatically
+  await playChapter(page);
+  await expect(page.getByTestId('chapter-card')).toContainText('ستة عشر سنة', { timeout: 20_000 });
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('amine.save') ?? '{}'));
+  expect(saved.state.chapter).toBe(46);
+});
+
+test('a ?chapter= link opens that chapter directly', async ({ page }) => {
+  await page.goto(URL);
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(`${URL}&chapter=53`);
+  await expect(page.getByTestId('chapter-card')).toBeVisible({ timeout: 60_000 });
+  expect(await page.evaluate(() => window.__AMINE__.state().game.chapter)).toBe(53);
+});
