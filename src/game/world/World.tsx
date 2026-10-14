@@ -229,6 +229,10 @@ function Hanout({ age }: { age: number }) {
       <mesh position={[13, 2.75, -7.3]} rotation={[0.5, 0, 0]} material={mat(age >= 14 ? '#2471a3' : '#c0392b', { side: THREE.DoubleSide })}>
         <planeGeometry args={[6, 1.3]} />
       </mesh>
+      {/* the awning is above head height: a thin collider keeps the camera from slipping under it */}
+      <RigidBody type="fixed" colliders={false}>
+        <CuboidCollider args={[3, 0.3, 0.6]} position={[13, 2.75, -7.3]} rotation={[0.5, 0, 0]} />
+      </RigidBody>
       <Box p={[13, 0.5, -15.5]} s={[5, 1, 0.7]} c="#9c6b3f" col />
       <Box p={[11.6, 1.12, -15.5]} s={[0.5, 0.25, 0.4]} c="#f1c40f" />
       <Box p={[14.3, 1.1, -15.5]} s={[0.6, 0.2, 0.4]} c="#888" />
@@ -316,6 +320,10 @@ function Square() {
           <mesh position={[x as number, 2.4, -27.4]} rotation={[0.25, 0, 0]} castShadow material={mat(c as string, { side: THREE.DoubleSide })}>
             <planeGeometry args={[3.4, 1.8]} />
           </mesh>
+          {/* the cloth stops the camera like a wall */}
+          <RigidBody type="fixed" colliders={false}>
+            <CuboidCollider args={[1.7, 0.9, 0.04]} position={[x as number, 2.4, -27.4]} rotation={[0.25, 0, 0]} />
+          </RigidBody>
           <Cyl p={[(x as number) - 1.5, 1.2, -27.8]} r={0.05} h={2.4} c="#555" />
           <Cyl p={[(x as number) + 1.5, 1.2, -27.8]} r={0.05} h={2.4} c="#555" />
         </group>

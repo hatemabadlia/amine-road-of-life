@@ -1141,6 +1141,8 @@ const ch20: Chapter = {
   summary: 'مسابقة ثقافية في المدرسة، ودورة كورة بين المدارس. نفس الأسبوع.',
   start: { spot: 'school_courtyard', time: '10:00' },
   dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
+  // cup day (the next morning): the school team's green kit instead of the smock
+  dressIf: [{ if: 'chose_tournament & time>=1440', dress: { amine: { shirt: '#1e8449', pants: '#f4f6f7' }, walid: { shirt: '#1e8449', pants: '#f4f6f7' } } }],
   cast: { walid: 'school_courtyard', coach: 'football' },
   event: 'match',
   opening: [N('على لوحة الإعلانات: "مسابقة المعرفة" و"دورة ما بين المدارس".')],

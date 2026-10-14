@@ -6,7 +6,7 @@ import { CapsuleCollider, RigidBody, useRapier, type RapierCollider, type Rapier
 import { amineLook, type HumanoidHandle } from './Humanoid';
 import { Character } from './SkinnedHuman';
 import { input, moveVector } from './input';
-import { chapterOf, livePose, useGame } from '../store';
+import { dressFor, livePose, useGame } from '../store';
 import { camState, cine } from '../engine/refs';
 import { sound } from '../audio/sound';
 import { surfaceAt } from '../world/layout';
@@ -43,7 +43,7 @@ function lerpAngle(a: number, b: number, t: number) {
 
 export function Player() {
   const age = useGame((s) => s.game?.age ?? 10);
-  const dress = useGame((s) => (s.game ? chapterOf(s.game).dress?.amine : undefined));
+  const dress = useGame((s) => (s.game ? dressFor(s.game, 'amine') : undefined));
   const spawn = useGame((s) => s.spawn);
   const look = useMemo(() => ({ ...amineLook(age), ...dress }), [age, dress]);
   const scale = look.scale;
@@ -152,6 +152,7 @@ export function Player() {
       const t = b.translation();
       b.setNextKinematicTranslation({ x: u.at.x, y: t.y, z: u.at.z });
       vel.current.set(0, 0, 0);
+      input.jumpQueued = false;
       facing.current = u.at.yaw;
       if (visual.current) visual.current.rotation.y = u.at.yaw;
       if (model.current) {

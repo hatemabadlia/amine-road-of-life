@@ -112,6 +112,21 @@ describe('missions', () => {
     expect(s.money).toBe(money + 50);
   });
 
+  it('a cut allowance comes back once trust is rebuilt', () => {
+    const s = createState();
+    startChapter(s, mini, 1);
+    s.flags.allowance_cut = true;
+    s.stats.trust = 30;
+    finishChapter(s, mini, () => 'x');
+    expect(s.flags.allowance_cut).toBe(true);
+    s.stats.trust = 90;
+    const money = s.money;
+    const changes = startChapter(s, mini, 2);
+    expect(s.flags.allowance_cut).toBeUndefined();
+    expect(changes.some((c) => c.note?.includes('رجعولك المصروف'))).toBe(true);
+    expect(s.money).toBe(money + 50);
+  });
+
   it('finishing chapter 68 evaluates an ending', () => {
     const s = createState();
     startChapter(s, CHAPTERS, 68);

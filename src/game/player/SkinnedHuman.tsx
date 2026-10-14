@@ -305,9 +305,19 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
     };
   }, [head, accessories]);
 
-  useFrame((_, rawDt) => {
+  const _me = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ camera }, rawDt) => {
     const dt = Math.min(rawDt, 0.1);
     const st = state.current;
+    // the camera never shows the inside of a body: hide a character it passes through
+    let near = false;
+    if (root.current) {
+      root.current.getWorldPosition(_me);
+      const top = 1.8 * look.scale;
+      const y = THREE.MathUtils.clamp(camera.position.y - _me.y, 0, top);
+      near = Math.hypot(camera.position.x - _me.x, camera.position.z - _me.z, camera.position.y - _me.y - y) < 0.42 * look.scale + 0.12;
+      model.visible = !near;
+    }
     const sp = st.speed;
     const want: Act = st.air ? 'Jump' : sp > 4.2 ? 'Run' : sp > 0.15 ? 'Walk' : working ? 'Work' : 'Stand';
     if (want !== current.current) {
@@ -395,8 +405,8 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
         turn(head, Y_AXIS, Math.sin(t * 0.9) * 0.06 * k);
       }
     } else model.position.y = 0;
-    // long clothes are a rigid skirt: hidden while sitting or lying
-    if (robe) robe.visible = w < 0.5 || (Math.abs(L.lean) < 0.3 && L.thigh[0].y < -0.8);
+    // long clothes are a rigid skirt: hidden while sitting, lying or kneeling at work
+    if (robe) robe.visible = !near && current.current !== 'Work' && (w < 0.5 || (Math.abs(L.lean) < 0.3 && L.thigh[0].y < -0.8));
     if (blob.current) blob.current.visible = !st.air;
   });
 

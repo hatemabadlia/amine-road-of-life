@@ -126,6 +126,8 @@ export interface Chapter {
   lying?: string[];
   /** clothes worn this chapter (school smock, qamis for prayer, new Eid clothes): 'amine' or character id -> look changes */
   dress?: Record<string, Partial<Look>>;
+  /** clothes that replace `dress` while a condition holds (e.g. the football kit on match day) */
+  dressIf?: { if: string; dress: Record<string, Partial<Look>> }[];
   /** a special event that dresses the neighbourhood (decorations, music) */
   event?: 'wedding' | 'friday' | 'volunteer' | 'ramadan' | 'eid' | 'match';
   opening: Step[];

@@ -1,6 +1,7 @@
 // Central game store: wraps the pure story engine for the UI and 3D scene.
 import { create } from 'zustand';
 import type { Chapter, GameState, Objective, Step } from '../types/game';
+import type { Look } from '../content/characters';
 import { CHAPTERS } from '../content/chapters';
 import { SIDES, type SideActivity } from '../content/sides';
 import { characterById } from '../content/characters';
@@ -212,6 +213,13 @@ export function availableSide(g: GameState, target: string): SideActivity | null
         (s.repeatable || !g.sides.includes(s.id)),
     ) ?? null
   );
+}
+
+/** Clothes a character wears right now in this chapter (the same object while nothing changes). */
+export function dressFor(g: GameState, id: string): Partial<Look> | undefined {
+  const ch = chapterOf(g);
+  const alt = ch.dressIf?.find((d) => id in d.dress && evalCond(g, d.if));
+  return alt ? alt.dress[id] : ch.dress?.[id];
 }
 
 function spawnForChapter(g: GameState): Spawn {

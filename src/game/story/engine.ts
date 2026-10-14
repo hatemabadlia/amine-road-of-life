@@ -109,7 +109,7 @@ export const DRIFT: [keyof GameState['stats'], number, number][] = [
 /** Base allowance by age; reduced by consequences. */
 export function allowanceFor(state: GameState): number {
   const base = state.age <= 12 ? 50 : state.age <= 15 ? 100 : 200;
-  if (state.flags.allowance_cut && !state.flags.allowance_restored) return Math.round(base / 2);
+  if (state.flags.allowance_cut) return Math.round(base / 2);
   if (state.stats.trust < 25) return Math.round(base / 2);
   return base;
 }
@@ -143,11 +143,17 @@ export function startChapter(state: GameState, chapters: Chapter[], id: number):
   }
   // health slowly recovers when Amine is not exposed to risk
   if (state.stats.risk < 50) state.stats.health = clamp(state.stats.health + 2);
+  const out: Change[] = [];
+  // a cut allowance comes back once the parents trust Amine again
+  if (state.flags.allowance_cut && state.stats.trust >= 55) {
+    delete state.flags.allowance_cut;
+    out.push({ key: 'note', delta: 0, note: 'الوالدين رجعولك المصروف كامل' });
+  }
   if (ch.allowance !== false) {
     const a = allowanceFor(state);
-    return applyFx(state, { money: a }).map((c) => ({ ...c, note: 'مصروف اليوم' }));
+    out.push(...applyFx(state, { money: a }).map((c) => ({ ...c, note: 'مصروف اليوم' })));
   }
-  return [];
+  return out;
 }
 
 /**

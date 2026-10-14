@@ -6,7 +6,7 @@ import { BallCollider, CapsuleCollider, RigidBody, type RapierRigidBody } from '
 import { CHARACTERS, characterById, type Look } from '../../content/characters';
 import type { HumanoidHandle } from '../player/Humanoid';
 import { Character } from '../player/SkinnedHuman';
-import { activeObjective, chapterOf, livePose, useGame } from '../store';
+import { activeObjective, chapterOf, dressFor, livePose, useGame } from '../store';
 import { agents, arrived, face, makeAgent, stepAgent, walkTo } from './agents';
 import { nav, pathLength } from './nav';
 import { castPositions } from './cast';
@@ -146,7 +146,7 @@ export function StoryNPCs() {
     const g = useGame.getState().game;
     if (!g) return [];
     const ch = chapterOf(g);
-    return castPositions(ch, g).map((p) => ({ ...p, lying: !!ch.lying?.includes(p.id), dress: ch.dress?.[p.id] }));
+    return castPositions(ch, g).map((p) => ({ ...p, lying: !!ch.lying?.includes(p.id), dress: dressFor(g, p.id) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId, doneCount]);
   return (
