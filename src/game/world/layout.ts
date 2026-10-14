@@ -76,6 +76,7 @@ export const SPOTS: Spot[] = [
   spot('exam_hall', 'قاعة الامتحان', 71.5, 18, 3),
   spot('stadium_gate', 'باب الملعب البلدي', 62, 48.8, 3),
   spot('stadium', 'الملعب البلدي', 62, 64, 6),
+  spot('stadium_stands', 'المدرجات', 62, 72.3, 2),
 ];
 
 const obj = (id: string, name: string, verb: string, x: number, z: number): WorldObject => ({ id, name, verb, x, z });

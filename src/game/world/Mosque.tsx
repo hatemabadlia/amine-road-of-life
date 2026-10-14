@@ -267,16 +267,16 @@ export function MosqueBuilding() {
 
 // worshippers' outfits: white and earth-toned qamis, a few caps
 const WORSHIPPERS: Look[] = [
-  { skin: '#c99670', shirt: '#f4f1ea', pants: '#e8e3d7', hair: '#222', scale: 1, cap: '#ffffff', shoes: '#c99670' },
-  { skin: '#b98a63', shirt: '#d8cfbd', pants: '#c9bfa8', hair: '#ddd', scale: 0.98, beard: true, cap: '#ffffff', shoes: '#b98a63' },
+  { skin: '#c99670', shirt: '#f4f1ea', pants: '#e8e3d7', hair: '#222', scale: 1, cap: '#ffffff', shoes: '#c99670', outfit: 'qamis' },
+  { skin: '#b98a63', shirt: '#d8cfbd', pants: '#c9bfa8', hair: '#ddd', scale: 0.98, beard: true, cap: '#ffffff', shoes: '#b98a63', outfit: 'djellaba', robe: '#9a8466' },
   { skin: '#c48b62', shirt: '#7f8c8d', pants: '#2c3e50', hair: '#111', scale: 1.02, shoes: '#c48b62' },
-  { skin: '#d1a07a', shirt: '#f4f1ea', pants: '#f4f1ea', hair: '#222', scale: 0.96, beard: true, shoes: '#d1a07a' },
+  { skin: '#d1a07a', shirt: '#f4f1ea', pants: '#f4f1ea', hair: '#222', scale: 0.96, beard: true, shoes: '#d1a07a', outfit: 'qamis' },
   { skin: '#bf8a62', shirt: '#5d6d7e', pants: '#212f3d', hair: '#151515', scale: 1.0, cap: '#7b241c', shoes: '#bf8a62' },
   { skin: '#dcae85', shirt: '#2471a3', pants: '#1c2833', hair: '#3b2a20', scale: 0.72, shoes: '#dcae85' },
 ];
 
 /** Rows of worshippers face the mihrab (a gap stays open for Amine): the Friday
- *  prayer from 12:00 to 13:30, and tarawih in Ramadan from 20:00 to 22:00. */
+ *  prayer from 12:00 to 13:30, tarawih in Ramadan from 20:00 to 22:00, and the Eid prayer in the morning. */
 function Worshippers() {
   const active = useGame((s) => {
     if (!s.game) return false;
@@ -284,6 +284,7 @@ function Worshippers() {
     const h = (s.game.time % 1440) / 60;
     if (ev === 'friday') return h >= 12 && h < 13.5;
     if (ev === 'ramadan') return h >= 20 && h < 22;
+    if (ev === 'eid') return h >= 6.5 && h < 9.5;
     return false;
   });
   const people = useMemo(() => {

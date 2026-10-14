@@ -432,3 +432,83 @@ test('chapter 15: Ramadan — food baskets at Dar Chabab, iftar at home, tarawih
   expect(g.chapter).toBe(16);
   expect(g.flags.ramadan_baskets).toBe(true);
 });
+
+/** Play one chapter through the real UI; returns the objectives in the order they became active. */
+async function playThrough(page: Page, chapter: number, pick: Record<string, number> = {}, onChoice?: (view: { id: string; quiz?: unknown }) => Promise<boolean>) {
+  const visited: string[] = [];
+  for (let guard = 0; guard < 200; guard++) {
+    const st = await page.evaluate(() => {
+      const s = window.__AMINE__.state();
+      return { card: s.card, view: s.dialogue?.view ?? null, ch: s.game.chapter };
+    });
+    if (st.ch !== chapter) break;
+    if (st.card) {
+      await page.waitForTimeout(950);
+      await page.getByTestId('start-chapter').click();
+      continue;
+    }
+    if (st.view) {
+      if (st.view.kind === 'choice') {
+        if (!(onChoice && (await onChoice(st.view)))) await page.getByTestId(`choice-${pick[st.view.id] ?? 0}`).click();
+      } else {
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(40);
+        if ((await page.evaluate(() => window.__AMINE__.state().dialogue?.view.kind ?? null)) === 'line') await page.keyboard.press('Enter');
+      }
+      await page.waitForTimeout(80);
+      continue;
+    }
+    const o = await page.evaluate(() => window.__AMINE__.objective());
+    if (!o) {
+      await page.waitForTimeout(150);
+      continue;
+    }
+    if (!visited.includes(o.id)) visited.push(o.id);
+    await page.evaluate((t) => window.__AMINE__.goTo(t), o.target);
+    await page.waitForTimeout(600);
+    if (o.type !== 'goto' && !(await page.evaluate(() => !!window.__AMINE__.state().dialogue))) {
+      await expect(page.getByTestId('prompt')).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press('KeyE');
+      await page.waitForTimeout(200);
+    }
+  }
+  return visited;
+}
+
+test('studying opens the maths quiz: a right answer raises the grades, a wrong one shows the answer', async ({ page }) => {
+  test.setTimeout(300_000);
+  await startNewGame(page);
+  await page.evaluate(() => window.__AMINE__.jumpTo(6));
+  const results: { right: boolean; gained: number }[] = [];
+  await playThrough(page, 6, {}, async (view) => {
+    if (!view.quiz) return false;
+    await expect(page.getByTestId('quiz')).toBeVisible();
+    // age 10: a sum or a difference of small numbers, written left to right
+    await expect(page.getByTestId('quiz')).toContainText(/\d+ [+−] \d+ = \?/);
+    const before = await page.evaluate(() => window.__AMINE__.state().game.stats.grades);
+    await page.getByTestId('choice-0').click();
+    await page.waitForTimeout(100);
+    const line: string = await page.evaluate(() => window.__AMINE__.state().dialogue?.view.text ?? '');
+    const after = await page.evaluate(() => window.__AMINE__.state().game.stats.grades);
+    results.push({ right: line.startsWith('✔'), gained: after - before });
+    return true;
+  });
+  expect(results).toHaveLength(2);
+  for (const r of results) expect(r.gained).toBe(r.right ? 1 : 0);
+  // quiz answers are practice, not story decisions
+  const g = await page.evaluate(() => window.__AMINE__.state().game);
+  expect(g.chapter).toBe(7);
+  expect(g.history.some((d: { id: string }) => d.id.startsWith('quiz_'))).toBe(false);
+});
+
+test('chapter 53: Eid morning — prayer with Baba, forgiveness at home, the eidiya for Selma', async ({ page }) => {
+  test.setTimeout(300_000);
+  await startNewGame(page);
+  await page.evaluate(() => window.__AMINE__.jumpTo(53));
+  const visited = await playThrough(page, 53);
+  expect(visited).toEqual(expect.arrayContaining(['eid_morning', 'eid_mosque', 'eid_prayer', 'eid_home', 'baba', 'eidiya']));
+  expect(visited.indexOf('eid_prayer')).toBeLessThan(visited.indexOf('baba'));
+  const g = await page.evaluate(() => window.__AMINE__.state().game);
+  expect(g.chapter).toBe(54);
+  expect(g.flags.fixed_table).toBe(true);
+});

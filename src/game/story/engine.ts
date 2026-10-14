@@ -233,7 +233,7 @@ export function finishChapter(state: GameState, chapters: Chapter[], evaluateEnd
 
 export type DialogueView =
   | { kind: 'line'; speaker: string; text: string; cam?: Shot }
-  | { kind: 'choice'; id: string; options: { index: number; text: string; tone?: Tone }[] };
+  | { kind: 'choice'; id: string; options: { index: number; text: string; tone?: Tone }[]; quiz?: ChoiceStep['quiz'] };
 
 interface Frame {
   steps: Step[];
@@ -297,6 +297,7 @@ export class DialogueRunner {
     return {
       kind: 'choice',
       id: step.id,
+      quiz: step.quiz,
       options: step.choose
         .map((c, index) => ({ c, index }))
         .filter(({ c }) => evalCond(state, c.if))
@@ -312,7 +313,7 @@ export class DialogueRunner {
     if (!c || !evalCond(state, c.if)) throw new Error(`Invalid choice ${index} for ${step.id}`);
     this.pending = null;
     this.changes.push(...applyFx(state, c.fx, c.set, c.unset));
-    state.history.push({ chapter: this.chapterId, id: step.id, choice: c.t, tone: c.tone });
+    if (!step.quiz) state.history.push({ chapter: this.chapterId, id: step.id, choice: c.t, tone: c.tone });
     if (c.then?.length) this.stack.push({ steps: c.then, i: 0 });
   }
 

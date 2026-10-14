@@ -28,8 +28,8 @@ for (let guard = 0; guard < 160; guard++) {
     continue;
   }
   if (st.v) {
-    const key = `${st.src?.kind}:${st.src?.id}`;
-    if (!seen.has(key)) { seen.add(key); await page.waitForTimeout(1500); await snap(st.src?.id ?? 'scene'); }
+    const key = `${st.src?.kind}:${st.src?.id}:${st.v.kind === "choice" ? st.v.id : ""}`;
+    if (!seen.has(key)) { seen.add(key); await page.waitForTimeout(1500); await snap(`${st.src?.id ?? "scene"}${st.v.kind === "choice" ? "-" + st.v.id : ""}`); }
     if (st.v.kind === 'choice') await page.click(`[data-testid=choice-${pick[st.v.id] ?? 0}]`);
     else { await page.keyboard.press('Enter'); await page.waitForTimeout(40); await page.keyboard.press('Enter'); }
     await page.waitForTimeout(150);

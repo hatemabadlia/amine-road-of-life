@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { BallCollider, CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
-import { CHARACTERS, characterById } from '../../content/characters';
+import { CHARACTERS, characterById, type Look } from '../../content/characters';
 import type { HumanoidHandle } from '../player/Humanoid';
 import { Character } from '../player/SkinnedHuman';
 import { activeObjective, chapterOf, livePose, useGame } from '../store';
@@ -40,8 +40,9 @@ function nameTexture(name: string, color: string) {
 const WORKERS = new Set(['bachir', 'jeddi']);
 const BED = spotById.get('hospital_bed')!;
 
-function NPC({ id, x, z, lying = false }: { id: string; x: number; z: number; lying?: boolean }) {
-  const ch = characterById.get(id)!;
+function NPC({ id, x, z, lying = false, dress }: { id: string; x: number; z: number; lying?: boolean; dress?: Partial<Look> }) {
+  const base = characterById.get(id)!;
+  const ch = useMemo(() => (dress ? { ...base, look: { ...base.look, ...dress } } : base), [base, dress]);
   const group = useRef<THREE.Group>(null);
   const model = useRef<HumanoidHandle>(null);
   const tag = useRef<THREE.Sprite>(null);
@@ -144,13 +145,13 @@ export function StoryNPCs() {
     const g = useGame.getState().game;
     if (!g) return [];
     const ch = chapterOf(g);
-    return castPositions(ch, g).map((p) => ({ ...p, lying: !!ch.lying?.includes(p.id) }));
+    return castPositions(ch, g).map((p) => ({ ...p, lying: !!ch.lying?.includes(p.id), dress: ch.dress?.[p.id] }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId, doneCount]);
   return (
     <>
       {placements.map((p) => (
-        <NPC key={`${chapterId}:${p.id}`} id={p.id} x={p.x} z={p.z} lying={p.lying} />
+        <NPC key={`${chapterId}:${p.id}`} id={p.id} x={p.x} z={p.z} lying={p.lying} dress={p.dress} />
       ))}
     </>
   );

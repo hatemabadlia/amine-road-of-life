@@ -14,7 +14,18 @@ export interface Look {
   style?: 'short' | 'bald' | 'curly' | 'long';
   /** shoe colour (defaults: white trainers for kids, dark shoes for adults) */
   shoes?: string;
+  /**
+   * Traditional or school clothes over the body:
+   * qamis (long robe), djellaba (long robe with a hood), jebba (long house dress),
+   * haik (wrap over head and body with a face veil — white haik, or the black mlaya of the east),
+   * smock (the school blouse, the teacher's white coat or the shopkeeper's grey coat).
+   */
+  outfit?: Outfit;
+  /** colour of the outfit (defaults to the shirt colour) */
+  robe?: string;
 }
+
+export type Outfit = 'qamis' | 'djellaba' | 'jebba' | 'haik' | 'smock';
 
 export interface AmbientRule {
   if?: string;
@@ -44,7 +55,7 @@ export const CHARACTERS: Character[] = [
     role: 'أم أمين',
     home: [-12.5, -15],
     color: '#c0577c',
-    look: { skin: '#d9a77c', shirt: '#7d3c5c', pants: '#5a2c44', hair: '#2b1b14', scale: 0.95, hijab: '#e8d7c3' },
+    look: { skin: '#d9a77c', shirt: '#7d3c5c', pants: '#5a2c44', hair: '#2b1b14', scale: 0.95, hijab: '#e8d7c3', outfit: 'jebba' },
     ambient: [
       { if: 'anger>=50', lines: ['ما نحبش نهدر معاك دروك يا أمين.', 'روح لبيتك وخمّم في واش درت.'] },
       { if: 'parents>=70', lines: ['ربي يحفظك يا وليدي.', 'كليت مليح؟ راك ضعفت.', 'تحب نديرلك كاس حليب؟'] },
@@ -105,7 +116,7 @@ export const CHARACTERS: Character[] = [
     role: 'المعلم',
     home: [-26.5, 36],
     color: '#8e6c3a',
-    look: { skin: '#c9946b', shirt: '#e5e0d5', pants: '#4b4b4b', hair: '#777', scale: 1.0, style: 'bald' },
+    look: { skin: '#c9946b', shirt: '#e5e0d5', pants: '#4b4b4b', hair: '#777', scale: 1.0, style: 'bald', outfit: 'smock', robe: '#f4f4f0' },
     ambient: [
       { lines: ['الصبر مفتاح الفرج، والقراية مفتاح المستقبل.', 'ما تنساش الواجب تاع غدوة.'] },
     ],
@@ -125,7 +136,7 @@ export const CHARACTERS: Character[] = [
     role: 'مول الحانوت',
     home: [13, -17],
     color: '#a0522d',
-    look: { skin: '#c18a5f', shirt: '#f0e6d2', pants: '#5b4a3a', hair: '#ddd', scale: 1.0, beard: true, cap: '#fff' },
+    look: { skin: '#c18a5f', shirt: '#f0e6d2', pants: '#5b4a3a', hair: '#ddd', scale: 1.0, beard: true, cap: '#fff', outfit: 'smock', robe: '#8e9aa6' },
     ambient: [
       { lines: ['مرحبا يا وليدي، واش تحتاج؟', 'الكريدي ممنوع، بصح الكلمة الطيبة مرحبا بيها.', 'سلّملي على باباك.'] },
     ],
@@ -171,7 +182,7 @@ export const CHARACTERS: Character[] = [
     role: 'جدّ أمين',
     home: [-21, -56.5],
     color: '#9b8b6e',
-    look: { skin: '#b98a63', shirt: '#d8cfbd', pants: '#8a7b63', hair: '#eee', scale: 0.98, beard: true, cap: '#f5f5f5' },
+    look: { skin: '#b98a63', shirt: '#d8cfbd', pants: '#8a7b63', hair: '#eee', scale: 0.98, beard: true, cap: '#f5f5f5', outfit: 'djellaba', robe: '#8a6f4e' },
     ambient: [{ lines: ['تعال يا وليدي، اقعد حدايا.', 'الزيتونة كيما الراجل، تكبر بالصبر.'] }],
   },
   {
@@ -192,7 +203,7 @@ export const CHARACTERS: Character[] = [
     role: 'إمام مسجد الرحمة',
     home: [35.4, -53.9],
     color: '#1e8449',
-    look: { skin: '#c18a5f', shirt: '#f4f1ea', pants: '#e8e3d7', hair: '#9e9e9e', scale: 1.0, beard: true, cap: '#ffffff', shoes: '#f4f1ea' },
+    look: { skin: '#c18a5f', shirt: '#f4f1ea', pants: '#e8e3d7', hair: '#9e9e9e', scale: 1.0, beard: true, cap: '#ffffff', shoes: '#f4f1ea', outfit: 'qamis' },
     ambient: [{ lines: ['السلام عليكم يا وليدي. الجامع دارك، ادخل وقت ما تحب.', 'ربي يحفظك ويحفظ والديك.'] }],
   },
   {
@@ -220,7 +231,7 @@ export const CHARACTERS: Character[] = [
     role: 'الجارة',
     home: [-36, -5.5],
     color: '#b9770e',
-    look: { skin: '#d6a37a', shirt: '#a04000', pants: '#6e2c00', hair: '#222', scale: 0.92, hijab: '#f0f0f0' },
+    look: { skin: '#d6a37a', shirt: '#a04000', pants: '#6e2c00', hair: '#222', scale: 0.92, hijab: '#f0f0f0', outfit: 'jebba' },
     ambient: [
       { lines: ['يا أمين، قوللي لماماك نجيها العشية.', 'الحومة كلها تعرف كل شي يا وليدي.', 'ربي يهديك ويهدي صحابك.'] },
     ],

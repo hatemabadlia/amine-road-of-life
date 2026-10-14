@@ -14,7 +14,7 @@ const ch58: Chapter = {
   age: 17,
   summary: 'ياسين، خالتي فتيحة، عمي صالح... الطفولة ترجع بوجوه.',
   start: { spot: 'hanout_front', time: '16:00' },
-  cast: { yacine: 'hanout_front', fatiha: 'home_door', salah: 'hanout' },
+  cast: { yacine: 'hanout_front', fatiha: 'home_door', salah: 'hanout', hassane: 'dar_chabab_front' },
   opening: [N('ساعات الماضي ما يرجعش كذكرى. يرجع كواحد يسلّم عليك في الطريق.')],
   objectives: [
     talk('yacine', 'ياسين رجع للحومة', 'yacine', [
@@ -51,8 +51,22 @@ const ch58: Chapter = {
         opt('ربي يعطيك الصحة يا عمي صالح.', 'neutral', {}),
       ),
     ]),
+    goto('dar', 'دار الشباب — المنشّط حسان بعثلك', 'dar_chabab_front'),
+    talk('hassane', 'المنشّط حسان', 'hassane', [
+      say('hassane', 'أمين! شحال كبرت. تفكّر أول نهار جيت لدار الشباب؟ كنت قد هاذ الطاولة.'),
+      when('planted_tree', [say('hassane', 'الشجرة تاعك طلعت فوق الحيط. الصغار يقعدو في ظلّها.')]),
+      when('volunteer_spirit | volunteer_kid', [say('hassane', 'عندي فوج تاع صغار، عشرة سنين. يحتاجو واحد يعرف الحومة، ويعرف الغلطات قبل ما يديروها.')], [say('hassane', 'نحتاج شباب كيفك يشدّو فوج تاع صغار. حتى إذا ما جيتش بزاف، الحومة تعرفك.')]),
+      choose(
+        'youth_leader',
+        opt('نشدّ الفوج. السبت العشية، كل سيمانة.', 'help', { set: ['youth_leader', 'volunteer_spirit'], fx: { confidence: 5 } }),
+        opt('عندي بزاف حوايج دروك يا حسان. من بعد البكالوريا.', 'neutral', { then: [say('hassane', 'الباب مفتوح. ديما.')] }),
+      ),
+    ]),
   ],
-  closing: [N('الطفولة ما تموتش. تكبر معاك، وتستنّى تشوف واش درت بيها.')],
+  closing: [
+    N('الطفولة ما تموتش. تكبر معاك، وتستنّى تشوف واش درت بيها.'),
+    when('youth_leader', [N('وفي دار الشباب، فوج صغار يستنّى السبت. وأمين، اللي كان صغير في هاذ الساحة، ولّى هو اللي يستنّاوه.')]),
+  ],
 };
 
 const ch59: Chapter = {

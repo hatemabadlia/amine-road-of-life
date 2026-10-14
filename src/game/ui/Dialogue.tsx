@@ -80,10 +80,21 @@ export function Dialogue() {
   if (view.kind === 'choice') {
     return (
       <div className="dialogue panel" role="dialog" aria-label="اختار" data-testid="choices">
-        <div className="speaker" style={{ background: speakerColor('amine') }}>
-          أمين — واش تختار؟
-        </div>
-        <div className="choices">
+        {view.quiz ? (
+          <div className="quiz-head" data-testid="quiz">
+            <span className="quiz-count">
+              {view.quiz.kind === 'math' ? 'مراجعة' : 'ثقافة عامة'} — سؤال {view.quiz.n} من {view.quiz.of}
+            </span>
+            <bdi dir={view.quiz.kind === 'math' ? 'ltr' : 'rtl'} className={`quiz-expr ${view.quiz.kind}`}>
+              {view.quiz.expr}
+            </bdi>
+          </div>
+        ) : (
+          <div className="speaker" style={{ background: speakerColor('amine') }}>
+            أمين — واش تختار؟
+          </div>
+        )}
+        <div className={view.quiz ? 'choices quiz-options' : 'choices'}>
           {view.options.map((o, i) => (
             <button
               key={o.index}
@@ -97,7 +108,7 @@ export function Dialogue() {
               data-testid={`choice-${i}`}
             >
               <span className="num">{i + 1}</span>
-              <span>{o.text}</span>
+              {view.quiz?.kind === 'math' ? <bdi dir="ltr">{o.text}</bdi> : <span>{o.text}</span>}
             </button>
           ))}
         </div>

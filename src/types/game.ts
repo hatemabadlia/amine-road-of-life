@@ -1,3 +1,4 @@
+import type { Look } from '../content/characters';
 // Core data model shared by the story engine, the 3D game and the content files.
 
 export const STAT_KEYS = [
@@ -50,6 +51,8 @@ export interface ChoiceStep {
   /** Unique decision id within the chapter; recorded in decision history. */
   id: string;
   choose: Choice[];
+  /** a study-quiz question (generated at runtime; not recorded in the history) */
+  quiz?: { n: number; of: number; expr: string; kind: 'math' | 'culture' };
 }
 
 export interface CondStep {
@@ -100,6 +103,8 @@ export interface Objective {
   moves?: { npc: string; spot: string; if?: string }[];
   /** after completion Amine takes the bus across town to this spot (a short ride sequence) */
   ride?: string;
+  /** a study mini-game before the scene: `n` maths questions (for Amine's age, or for `age` when tutoring) */
+  quiz?: { n: number; age?: number; kind?: 'math' | 'culture' };
 }
 
 export interface Chapter {
@@ -119,8 +124,10 @@ export interface Chapter {
   absent?: string[];
   /** characters lying down this chapter (e.g. in a hospital bed) */
   lying?: string[];
+  /** clothes worn this chapter (school smock, qamis for prayer, new Eid clothes): 'amine' or character id -> look changes */
+  dress?: Record<string, Partial<Look>>;
   /** a special event that dresses the neighbourhood (decorations, music) */
-  event?: 'wedding' | 'friday' | 'volunteer' | 'ramadan';
+  event?: 'wedding' | 'friday' | 'volunteer' | 'ramadan' | 'eid' | 'match';
   opening: Step[];
   objectives: Objective[];
   closing: Step[];

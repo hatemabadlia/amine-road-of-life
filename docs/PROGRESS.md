@@ -89,6 +89,25 @@
 - **e2e test:** chapter 15 played through the real UI. It checks the baskets, that iftar is just before sunset and that tarawih comes after it.
 - Dev helper: `scripts/chapter-shots.mjs <chapter> <outDir> '<picks>' '<flags>'` plays one chapter and takes a screenshot of every scene.
 
+## Clothes, study quizzes, Eid and more places
+- **Algerian clothes** (`Look.outfit` + `robe` colour):
+  - qamis, djellaba with a pointed hood, the long house *jebba*;
+  - the haik (white) or the eastern black *mlaya*, with the white face veil (عجار);
+  - the smock: the school blouse, the teacher's white coat, the shopkeeper's grey coat.
+  - The skirt hangs from the body root, and the legs underneath take the robe colour.
+  - Who wears what: Mama and Fatiha wear a jebba, Jeddi a djellaba, the imam a qamis, the teacher a white coat, Salah a grey coat. Some townspeople and the worshippers wear haik, mlaya, djellaba or qamis.
+- **Chapter dress** (`Chapter.dress`): Amine wears the blue school smock in the primary-school chapters (1, 5, 9, 11, 13, 16, 20, 22), and a qamis on Friday (ch8, with Baba) and in Ramadan (ch15). On Eid (ch53) the family wears new clothes.
+- **Study mini-game:** ten study moments open with a quiz (`Objective.quiz`, table in `chapters/index.ts`), and so does the free "study" side activity (2 questions).
+  - The maths matches Amine's age: 2 + 6 at ten; tables and division at 11–12; equations, percentages, square roots and powers at 13–15; derivatives, logs and limits at 16–18.
+  - The school contest (ch20) asks culture questions instead: Algerian history and geography, Tébessa.
+  - A right answer gives +1 grades. A wrong one shows the correct answer.
+  - Quiz answers are not story decisions and never enter the history (`ChoiceStep.quiz`).
+- **Chapter 53 is Eid morning** (عيد المسامحة): new qandoura, Eid prayer with Baba in a full mosque, then asking forgiveness at home. Mourad hugs Amine at the door if he's in recovery, and Amine gives Selma her eidiya. The Ramadan lights stay up.
+- **Chapter 46:** Walid's birthday present is a match at the municipal stadium (bus ride), with supporters on the stands and two teams playing (`event: 'match'`, also in ch20). There's a choice when bottles are thrown at the referee.
+- **Chapter 47:** Amine researches the courses at the cybercafé before visiting the training centre.
+- **Chapter 58:** Hassane asks Amine to lead a group of 10-year-olds at Dar Chabab (`youth_leader`).
+- e2e tests: the quiz (a right answer gives +1 grades, wrong gives nothing, nothing goes into the history) and Eid.
+
 ## Known limitations
 - Environment art is procedural low-poly. Every character shares one base body (only colours and accessories differ). There's no sitting animation, and the "lying in bed" pose is the standing pose rotated. No screen-space AO (tried; it darkened the frame and was costly).
 - No voice acting. Music is synthesised (not recorded instruments), and I couldn't listen to it, only measure that it plays.

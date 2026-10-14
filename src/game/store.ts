@@ -32,6 +32,7 @@ import {
   type KV,
 } from './save/save';
 import { objectById, spotById } from './world/layout';
+import { quizSteps, withQuiz } from './story/quiz';
 import { sound } from './audio/sound';
 import { music } from './audio/music';
 
@@ -431,13 +432,14 @@ export const useGame = create<GameStore>((set, get) => {
       const o = peekObjective(g, ch);
       if (o && o.type !== 'goto' && o.target === target) {
         resolveObjective(g, ch);
-        if (o.dialogue?.length) startDialogue(o.dialogue, { kind: 'objective', id: o.id });
+        const steps = o.quiz ? withQuiz(o.dialogue ?? [], quizSteps(o.quiz.age ?? g.age, o.quiz.n, o.quiz.kind)) : o.dialogue;
+        if (steps?.length) startDialogue(steps, { kind: 'objective', id: o.id });
         else onObjectiveDone(o.id);
         return;
       }
       const side = availableSide(g, target);
       if (side) {
-        startDialogue(side.dialogue, { kind: 'side', id: side.id });
+        startDialogue(side.id === 'study' ? withQuiz(side.dialogue, quizSteps(g.age, 2)) : side.dialogue, { kind: 'side', id: side.id });
         return;
       }
       if (kind === 'npc') {

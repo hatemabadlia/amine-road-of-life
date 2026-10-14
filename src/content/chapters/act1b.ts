@@ -169,6 +169,7 @@ const ch8: Chapter = {
   age: 11,
   summary: 'نهار جمعة: السوق مع بابا الصباح، وصلاة الجمعة في الجامع. الأسوام، الخدمة، وقيمة الدينار.',
   start: { spot: 'home_living', time: '08:30' },
+  dress: { amine: { outfit: 'qamis', robe: '#f4f1ea' }, baba: { outfit: 'qamis', robe: '#e9e4d8', cap: '#ffffff' } },
   event: 'friday',
   cast: { baba: 'souk', salah: 'souk', walid: 'mosque_front' },
   opening: [N('عام فات. أمين عندو إحدى عشر سنة. بابا قالو: "اليوم تجي معايا للسوق."')],
@@ -292,6 +293,7 @@ const ch9: Chapter = {
   age: 11,
   summary: 'كراس الدروس ضاع، وغدوة لازم يتصحح. الصح ولا التحايل؟',
   start: { spot: 'classroom', time: '11:30' },
+  dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
   cast: { mourad: 'crossroads', walid: 'football' },
   opening: [say('teacher', 'غدوة كل واحد يجيب كراس الدروس، نشوف إذا راكم تكتبو.')],
   objectives: [
@@ -423,6 +425,7 @@ const ch11: Chapter = {
   age: 11,
   summary: 'نتائج الفصل الأول. الكشف لازم يتوقّع من الوالدين.',
   start: { spot: 'classroom', time: '09:00' },
+  dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
   opening: [say('teacher', 'وزّعنا كشوف النقاط. كل واحد يجيبهولي غدوة موقّع.')],
   objectives: [
     act('results', 'خوذ كشف النقاط', 'school_desk', [
@@ -546,6 +549,7 @@ const ch13: Chapter = {
   age: 11,
   summary: 'ياسين جا من ولاية بعيدة. لهجتو مختلفة، والصغار ما رحموهش.',
   start: { spot: 'school_gate', time: '10:00' },
+  dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
   cast: { mourad: 'school_courtyard' },
   opening: [N('الاستراحة. ساحة المدرسة. صوت الضحك... بصح ماشي ضحك مليح.')],
   objectives: [
@@ -657,6 +661,7 @@ const ch15: Chapter = {
   age: 11,
   summary: 'رمضان، وبابا في الجنوب، والشهرية تعطّلت. الدار تحسب كل دينار، والحومة تتعاون.',
   start: { spot: 'home_kitchen', time: '15:00' },
+  dress: { amine: { outfit: 'qamis', robe: '#e9e4d8' } },
   allowance: false,
   absent: ['baba'],
   event: 'ramadan',
@@ -820,6 +825,7 @@ const ch16: Chapter = {
   age: 12,
   summary: 'مراد يقترح يوم كامل في سيبر المدينة. وبابا بعيد.',
   start: { spot: 'home_door', time: '07:20' },
+  dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
   absent: ['baba'],
   cast: { mourad: 'crossroads' },
   opening: [N('عام جديد في المدرسة. اثنا عشر سنة.'), when('promise_made', [N('الوعد لبابا باقي في الراس.')])],
@@ -1134,7 +1140,9 @@ const ch20: Chapter = {
   age: 12,
   summary: 'مسابقة ثقافية في المدرسة، ودورة كورة بين المدارس. نفس الأسبوع.',
   start: { spot: 'school_courtyard', time: '10:00' },
+  dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
   cast: { walid: 'school_courtyard', coach: 'football' },
+  event: 'match',
   opening: [N('على لوحة الإعلانات: "مسابقة المعرفة" و"دورة ما بين المدارس".')],
   objectives: [
     act('board', 'اقرا لوحة الإعلانات', 'notice_board', [
@@ -1272,6 +1280,7 @@ const ch22: Chapter = {
   age: 12,
   summary: 'نهاية الابتدائي. النتائج، الذكريات، والطريق للمتوسطة.',
   start: { spot: 'school_courtyard', time: '10:00' },
+  dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
   cast: { mourad: 'school_courtyard', walid: 'school_courtyard' },
   opening: [N('آخر نهار في المدرسة الابتدائية. النتائج على الحيط.')],
   objectives: [

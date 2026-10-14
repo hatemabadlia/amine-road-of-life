@@ -20,6 +20,8 @@ function Look() {
   return null;
 }
 const ids = (q.get('ids') ?? 'mourad,mama,baba,grandpa,salah,walid').split(',');
+// ?outfits=qamis,djellaba,haik:#111,smock:#2f6db5 — sample adults and kids in each outfit
+const outfits = (q.get('outfits') ?? '').split(',').filter(Boolean).map((o) => o.split(':'));
 createRoot(document.getElementById('root')!).render(
   <Canvas shadows camera={{ position: [Number(q.get('cx') ?? 0), Number(q.get('cy') ?? 1.3), Number(q.get('dist') ?? 5)], fov: 45 }}>
     <Look />
@@ -27,6 +29,9 @@ createRoot(document.getElementById('root')!).render(
     <directionalLight position={[3, 6, 5]} intensity={2.5} castShadow />
     <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[30, 30]} /><meshStandardMaterial color="#c8b48f" /></mesh>
     <Driven look={amineLook(Number(q.get('age') ?? 10))} x={-3} working={q.has('work')} />
-    {ids.map((id, i) => { const c = CHARACTERS.find((c) => c.id === id); return c ? <Driven key={id} look={c.look} x={-2 + i * 1.1} working={q.has('work')} /> : null; })}
+    {outfits.map(([outfit, robe], i) => (
+      <Driven key={outfit + i} x={-2 + i * 1.1} working={q.has('work')} look={{ skin: '#c99670', shirt: '#f4f1ea', pants: '#333', hair: '#222', scale: q.has('kids') ? 0.76 : 1, outfit, robe, hijab: outfit === 'jebba' ? '#e8d7c3' : undefined, beard: !q.has('kids') && outfit !== 'haik' && outfit !== 'jebba' }} />
+    ))}
+    {!outfits.length && ids.map((id, i) => { const c = CHARACTERS.find((c) => c.id === id); return c ? <Driven key={id} look={c.look} x={-2 + i * 1.1} working={q.has('work')} /> : null; })}
   </Canvas>,
 );

@@ -10,6 +10,7 @@ const ch1: Chapter = {
   age: 10,
   summary: 'صباح عادي في الحومة. أمين لازم يروح للمدرسة، بصح مراد عندو فكرة أخرى.',
   start: { spot: 'home_bedroom', time: '07:00' },
+  dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
   allowance: false,
   cast: { mourad: 'crossroads' },
   opening: [
@@ -627,6 +628,7 @@ const ch5: Chapter = {
   age: 10,
   summary: 'المدير يبعث استدعاء. لمن؟ وعلاه؟ كل شي يتعلّق بواش صرا من قبل.',
   start: { spot: 'home_bedroom', time: '07:15' },
+  dress: { amine: { outfit: 'smock', robe: '#2f6db5' } },
   cast: { mourad: 'school_courtyard', fatiha: 'home_door' },
   opening: [N('نهار الفرض. الحومة ساكتة، والمدرسة تستنّى.')],
   objectives: [

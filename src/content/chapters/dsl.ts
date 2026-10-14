@@ -35,6 +35,7 @@ type ObjExtra = {
   skipTo?: string;
   moves?: { npc: string; spot: string; if?: string }[];
   ride?: string;
+  quiz?: { n: number; age?: number; kind?: 'math' | 'culture' };
 };
 
 export const goto = (id: string, text: string, target: string, extra: ObjExtra = {}): Objective => ({

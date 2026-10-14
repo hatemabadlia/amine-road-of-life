@@ -1,7 +1,12 @@
 // Decorations for special chapters. The neighbourhood wedding on the square:
 // a striped tent, strings of lights, rows of chairs and the DJ's speakers.
-// Ramadan: strings of lights from the minaret, and a zlabia stall at the souk.
-import { useMemo } from 'react';
+// Ramadan: strings of lights from the minaret, and a zlabia stall at the souk (the lights stay for Eid).
+// Match day: supporters on the stadium stands and two teams playing on the pitch.
+import { createRef, useMemo, useRef, type RefObject } from 'react';
+import { useFrame } from '@react-three/fiber';
+import type { Look } from '../../content/characters';
+import type { HumanoidHandle } from '../player/Humanoid';
+import { Character } from '../player/SkinnedHuman';
 import * as THREE from 'three';
 import { chapterOf, useGame } from '../store';
 import { glowAtNight, mat } from './materials';
@@ -103,7 +108,7 @@ function BulbString({ a, b, n, sag, mats, offset = 0 }: { a: P3; b: P3; n: numbe
 
 const RAMADAN_BULBS = ['#fff2c4', '#7dffa8', '#ffd27a'];
 
-function Ramadan() {
+function Ramadan({ stall = true }: { stall?: boolean }) {
   const bulbMats = useMemo(() => RAMADAN_BULBS.map((c) => glowAtNight(mat(c, { emissive: c, ei: 0.4 }), 3.4, 0.4)), []);
   const crescent = useMemo(() => glowAtNight(mat('#ffe9a8', { emissive: '#ffe9a8', ei: 0.3 }), 2.6, 0.3), []);
   // the minaret balcony (42.6, 15, -54.5) down to the corners of the façade, and along it
@@ -136,6 +141,7 @@ function Ramadan() {
         <torusGeometry args={[0.45, 0.08, 6, 16, Math.PI * 1.3]} />
       </mesh>
       {/* zlabia and qalb el louz stall at the west end of the souk */}
+      {stall && (
       <group position={[45.6, 0, -27.2]}>
         <mesh position={[0, 0.45, 0]} castShadow material={mat('#8d6e4a')}>
           <boxGeometry args={[2.6, 0.9, 1.1]} />
@@ -171,7 +177,107 @@ function Ramadan() {
         ))}
         <BulbString a={[-1.3, 2.2, 0.35]} b={[1.3, 2.2, 0.35]} n={9} sag={0.25} mats={bulbMats} />
       </group>
-      <Sign p={[45.6, 2.75, -26.5]} text="زلابية وقلب اللوز" w={2.4} h={0.45} bg="#7b241c" />
+      )}
+      {stall && <Sign p={[45.6, 2.75, -26.5]} text="زلابية وقلب اللوز" w={2.4} h={0.45} bg="#7b241c" />}
+    </group>
+  );
+}
+
+const KITS = [
+  { shirt: '#1e8449', pants: '#f4f4f4' },
+  { shirt: '#c0392b', pants: '#1c1c1c' },
+];
+const SKINS = ['#c99670', '#d9a77c', '#b98a63', '#c48b62', '#e0b48c', '#bf8a62'];
+
+/** Supporters standing on two rows of the stands, cheering, in the town's green and white. */
+function Supporters() {
+  const people = useMemo(() => {
+    const out: { x: number; y: number; z: number; look: Look }[] = [];
+    [
+      [1.2, 74.2],
+      [2.4, 75.8],
+    ].forEach(([y, z], row) => {
+      for (let i = 0; i < 9; i++) {
+        const skin = SKINS[(i * 3 + row) % SKINS.length];
+        const fan = (i + row) % 3;
+        out.push({
+          x: 50.5 + i * 2.8 + row * 1.2,
+          y,
+          z,
+          look: { skin, shirt: fan === 0 ? '#1e8449' : fan === 1 ? '#f4f4f4' : '#2c3e50', pants: '#2b2f3a', hair: '#1a1a1a', scale: i % 4 === 3 ? 0.78 : 1, cap: fan === 2 ? '#1e8449' : undefined, style: 'short' },
+        });
+      }
+    });
+    return out;
+  }, []);
+  const refs = useMemo(() => people.map(() => createRef<HumanoidHandle>()), [people]);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    refs.forEach((r, i) => {
+      if (r.current) r.current.talking = Math.sin(t * 0.9 + i * 1.7) > -0.2;
+    });
+  });
+  return (
+    <>
+      {people.map((p, i) => (
+        <group key={i} position={[p.x, p.y, p.z]} rotation={[0, Math.PI, 0]}>
+          <Character ref={refs[i]} look={p.look} />
+        </group>
+      ))}
+    </>
+  );
+}
+
+/** Ten players running set patterns around their positions (no physics, so they never block Amine). */
+function Players() {
+  const players = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => {
+        const team = i % 2;
+        const line = Math.floor(i / 2) % 5;
+        // home team defends the west goal, visitors the east
+        const bx = team === 0 ? 54 + line * 3 : 70 - line * 3;
+        const bz = 58.5 + ((i * 7) % 11);
+        return { team, bx, bz, phase: i * 1.3, look: { skin: SKINS[i % SKINS.length], ...KITS[team], hair: '#1a1a1a', scale: 1, style: 'short' as const, shoes: '#111' } };
+      }),
+    [],
+  );
+  const groups = useRef<(THREE.Group | null)[]>([]);
+  const models = useMemo(() => players.map(() => createRef<HumanoidHandle>()) as RefObject<HumanoidHandle | null>[], [players]);
+  useFrame(({ clock }, dt) => {
+    const t = clock.elapsedTime;
+    players.forEach((p, i) => {
+      const g = groups.current[i];
+      if (!g) return;
+      // a slow drift around the position, with bursts of running
+      const k = 0.35 + 0.25 * Math.sin(t * 0.3 + p.phase);
+      const x = p.bx + Math.sin(t * k + p.phase) * 3.2;
+      const z = THREE.MathUtils.clamp(p.bz + Math.cos(t * k * 1.3 + p.phase) * 2.4, 57.4, 70.6);
+      const dx = x - g.position.x;
+      const dz = z - g.position.z;
+      const speed = Math.hypot(dx, dz) / Math.max(dt, 1e-3);
+      g.position.set(x, 0, z);
+      if (speed > 0.05) g.rotation.y = Math.atan2(dx, dz);
+      const m = models[i].current;
+      if (m) m.speed = Math.min(speed, 6);
+    });
+  });
+  return (
+    <>
+      {players.map((p, i) => (
+        <group key={i} ref={(g) => void (groups.current[i] = g)} position={[p.bx, 0, p.bz]}>
+          <Character ref={models[i]} look={p.look} />
+        </group>
+      ))}
+    </>
+  );
+}
+
+function Match() {
+  return (
+    <group>
+      <Supporters />
+      <Players />
     </group>
   );
 }
@@ -180,5 +286,7 @@ export function EventDecor() {
   const event = useGame((s) => (s.game ? chapterOf(s.game).event : undefined));
   if (event === 'wedding') return <Wedding />;
   if (event === 'ramadan') return <Ramadan />;
+  if (event === 'eid') return <Ramadan stall={false} />;
+  if (event === 'match') return <Match />;
   return null;
 }

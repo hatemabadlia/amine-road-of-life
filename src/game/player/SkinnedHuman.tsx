@@ -24,9 +24,16 @@ const BANDS: [number, number][] = [
   [23, 32],
 ];
 const paletteCache = new Map<string, THREE.Texture>();
+/** Outfits that reach the ankles (the legs underneath take the robe colour). */
+const LONG = new Set(['qamis', 'djellaba', 'jebba', 'haik']);
+
 function paletteTexture(look: Look): THREE.Texture {
-  const hair = look.style === 'bald' ? look.skin : look.hijab ?? look.hair;
-  const colours = [look.skin, '#211a16', hair, look.shirt, look.pants];
+  const robe = look.robe ?? look.shirt;
+  const veiled = look.outfit === 'haik';
+  const hair = look.style === 'bald' ? look.skin : veiled ? robe : look.hijab ?? look.hair;
+  const shirt = look.outfit ? robe : look.shirt;
+  const pants = look.outfit && LONG.has(look.outfit) ? robe : look.pants;
+  const colours = [look.skin, '#211a16', hair, shirt, pants];
   const shoes = look.shoes ?? (look.scale < 0.85 ? '#e8e8e8' : '#2b2622');
   const key = [...colours, shoes].join('|');
   const hit = paletteCache.get(key);
@@ -153,6 +160,7 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
   });
 
   const accessories = useMemo(() => buildAccessories(look), [look]);
+  const robe = useMemo(() => buildRobe(look), [look]);
   useEffect(() => {
     head.add(accessories);
     return () => {
@@ -193,6 +201,7 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
     <group ref={root} scale={look.scale}>
       <mesh ref={blob} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} material={BLOB} geometry={BLOB_GEO} renderOrder={1} />
       <primitive object={model} scale={UNIT} />
+      {robe && <primitive object={robe} />}
     </group>
   );
 });
@@ -231,8 +240,57 @@ function buildAccessories(look: Look): THREE.Group {
     // chechia / taqiya-style cap
     add(new THREE.SphereGeometry(1, 14, 6, 0, Math.PI * 2, 0, Math.PI * 0.42), m, [0, 0.03, -0.01], [0.13, 0.15, 0.16]);
   }
+  if (look.outfit === 'djellaba') {
+    // the pointed hood hanging down the back
+    const m = low(look.robe ?? look.shirt);
+    add(new THREE.ConeGeometry(0.13, 0.3, 10, 1, true), m, [0, -0.12, -0.13], [1, 1, 0.55], [Math.PI + 0.35, 0, 0]);
+  }
+  if (look.outfit === 'haik') {
+    const m = low(look.robe ?? look.shirt);
+    // the haik drawn over the head like a hood, and the white face veil (3ajar) below the eyes
+    add(new THREE.SphereGeometry(1, 14, 10, Math.PI / 2 + 0.9, Math.PI * 2 - 1.8, 0, Math.PI * 0.8), m, [0, 0.008, -0.012], [0.142, 0.18, 0.178]);
+    add(new THREE.CylinderGeometry(0.14, 0.24, 0.24, 14, 1, true), m, [0, -0.22, -0.02]);
+    add(new THREE.SphereGeometry(1, 12, 6, Math.PI * 0.18, Math.PI * 0.64, Math.PI * 0.52, Math.PI * 0.3), low('#f7f5ef'), [0, -0.03, 0.014], [0.128, 0.15, 0.16]);
+  }
   if (look.style === 'long' && !look.hijab) {
     add(new THREE.CapsuleGeometry(0.1, 0.14, 4, 10), low(look.hair), [0, -0.1, -0.11], [1.15, 1, 0.45]);
+  }
+  return g;
+}
+
+/**
+ * The skirt of an outfit, in metres for an adult (the character group scales it):
+ * long robes fall from the waist to the ankles, the smock to mid-thigh. It hangs
+ * from the body root, so it sways with the walk without needing its own bones.
+ */
+function buildRobe(look: Look): THREE.Group | null {
+  if (!look.outfit) return null;
+  const colour = look.robe ?? look.shirt;
+  const m = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.9, side: THREE.DoubleSide, flatShading: true });
+  const g = new THREE.Group();
+  const long = LONG.has(look.outfit);
+  const top = 1.06;
+  const bottom = long ? 0.07 : 0.68;
+  const rTop = 0.165;
+  const rBottom = long ? (look.outfit === 'haik' ? 0.34 : 0.29) : 0.215;
+  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, top - bottom, 18, 1, true), m);
+  skirt.position.y = (top + bottom) / 2;
+  skirt.scale.z = 0.78;
+  skirt.castShadow = true;
+  g.add(skirt);
+  // a darker hem on robes and a row of buttons on smocks
+  const trim = new THREE.MeshStandardMaterial({ color: new THREE.Color(colour).multiplyScalar(0.7), roughness: 0.9 });
+  if (long) {
+    const hem = new THREE.Mesh(new THREE.CylinderGeometry(rBottom + 0.004, rBottom + 0.006, 0.05, 18, 1, true), trim);
+    hem.position.y = bottom + 0.03;
+    hem.scale.z = 0.78;
+    g.add(hem);
+  } else {
+    for (let i = 0; i < 3; i++) {
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 4), trim);
+      b.position.set(0, 0.98 - i * 0.1, 0.13 + i * 0.006);
+      g.add(b);
+    }
   }
   return g;
 }
