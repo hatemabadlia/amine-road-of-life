@@ -170,7 +170,7 @@ function ExamCentre({ age }: { age: number }) {
           <group key={`${x}${z}`}>
             <Box p={[x, 0.37, z]} s={[0.9, 0.74, 0.6]} c="#8b5e34" col />
             <Box p={[x, 0.75, z]} s={[0.3, 0.01, 0.4]} c="#fafafa" cast={false} />
-            <Box p={[x, 0.24, z + 0.55]} s={[0.42, 0.48, 0.42]} c="#555" />
+            <Box p={[x, 0.24, z - 0.55]} s={[0.42, 0.48, 0.42]} c="#555" />
           </group>
         )),
       )}

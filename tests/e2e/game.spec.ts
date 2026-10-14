@@ -4,7 +4,7 @@ declare global {
   interface Window {
     __AMINE__: {
       state: () => any; // eslint-disable-line @typescript-eslint/no-explicit-any
-      pose: () => { x: number; y: number; z: number; yaw: number };
+      pose: () => { x: number; y: number; z: number; yaw: number; inBed: boolean; pose: string };
       goTo: (id: string) => boolean;
       objective: () => { id: string; type: string; target: string; text: string } | null;
       interact: () => void;
@@ -44,6 +44,18 @@ async function advanceDialogue(page: Page, max = 60) {
 }
 
 /** Play the current chapter to completion through the real UI (teleporting between objectives). */
+/** Chapter 1 starts with Amine asleep: wake him up and wait until he stands beside the bed. */
+async function getOutOfBed(page: Page) {
+  expect(await page.evaluate(() => window.__AMINE__.pose().inBed)).toBe(true);
+  await expect(page.getByTestId('prompt')).toBeVisible({ timeout: 10_000 });
+  await page.keyboard.press('KeyE');
+  await expect(page.getByTestId('dialogue')).toBeVisible();
+  await advanceDialogue(page);
+  // he sits up, swings his legs out and stands beside the bed
+  await expect.poll(() => page.evaluate(() => { const p = window.__AMINE__.pose(); return Math.hypot(p.x + 27.85, p.z + 24.45) < 0.05 && !p.inBed; }), { timeout: 90_000 }).toBe(true);
+  await page.waitForTimeout(500);
+}
+
 async function playChapter(page: Page) {
   const start = await page.evaluate(() => window.__AMINE__.state().game.chapter);
   for (let guard = 0; guard < 120; guard++) {
@@ -102,18 +114,20 @@ test('new game: chapter card, opening dialogue, then mission HUD', async ({ page
 });
 
 test('keyboard moves Amine and walls stop him', async ({ page }) => {
+  test.setTimeout(240_000);
   await startNewGame(page);
   await page.waitForTimeout(950);
   await page.getByTestId('start-chapter').click();
   await advanceDialogue(page);
+  await getOutOfBed(page);
   const before = await page.evaluate(() => window.__AMINE__.pose());
-  // camera starts looking south: holding S walks north into the bedroom's outer wall (z = -28)
+  // the camera looks at the bed (north): holding S walks south, into the bedroom's inner wall (z = -18)
   await page.keyboard.down('KeyS');
   await page.waitForTimeout(4000);
   await page.keyboard.up('KeyS');
   const after = await page.evaluate(() => window.__AMINE__.pose());
   expect(Math.abs(after.z - before.z)).toBeGreaterThan(1.5);
-  expect(after.z).toBeGreaterThan(-27.9); // did not pass through the wall
+  expect(after.z).toBeLessThan(-18.1); // did not pass through the wall
   expect(after.y).toBeGreaterThan(-0.2); // did not fall through the floor
 });
 
@@ -152,10 +166,12 @@ test('pause menu saves and settings persist', async ({ page }) => {
 
 test('mobile layout shows touch controls and the joystick moves Amine', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'mobile only');
+  test.setTimeout(240_000);
   await startNewGame(page);
   await page.waitForTimeout(950);
   await page.getByTestId('start-chapter').click();
   await advanceDialogue(page);
+  await getOutOfBed(page);
   await expect(page.getByTestId('touch-controls')).toBeVisible();
   const before = await page.evaluate(() => window.__AMINE__.pose());
   const stick = page.locator('.joystick');
@@ -483,6 +499,8 @@ test('studying opens the maths quiz: a right answer raises the grades, a wrong o
   await playThrough(page, 6, {}, async (view) => {
     if (!view.quiz) return false;
     await expect(page.getByTestId('quiz')).toBeVisible();
+    // Amine sits down at his desk to study
+    await expect.poll(() => page.evaluate(() => window.__AMINE__.pose().pose), { timeout: 60_000 }).toBe('sit');
     // age 10: a sum or a difference of small numbers, written left to right
     await expect(page.getByTestId('quiz')).toContainText(/\d+ [+−] \d+ = \?/);
     const before = await page.evaluate(() => window.__AMINE__.state().game.stats.grades);

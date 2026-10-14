@@ -2,8 +2,10 @@
 // all static colliders (inside one fixed rigid body for efficiency).
 import { memo, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import { FOOTPRINTS, ROADS, WORLD_HALF } from './layout';
+import { livePose } from '../store';
 import { facadeMaterial, flatMat, groundTexture, mat, PALETTE, rng } from './materials';
 import { Districts } from './Districts';
 import { MosqueBuilding } from './Mosque';
@@ -92,6 +94,25 @@ export function Block({ x0, z0, x1, z1, h, wall, kit = true }: { x0: number; z0:
 // ---------------------------------------------------------------------------
 // Amine's family home (full interior)
 // ---------------------------------------------------------------------------
+/** Amine's red blanket: folded at the foot of the bed, pulled over him while he sleeps. */
+function Blanket() {
+  const ref = useRef<THREE.Mesh>(null);
+  const over = useRef(0);
+  useFrame((_, dt) => {
+    const m = ref.current;
+    if (!m) return;
+    over.current = THREE.MathUtils.damp(over.current, livePose.inBed ? 1 : 0, 5, dt);
+    const k = over.current;
+    m.position.set(-27.6 - 0.15 * k, 0.65 + 0.2 * k, -25.5);
+    m.scale.set(1 + 0.3 * k, 1 + 0.4 * k, 1 + 0.06 * k);
+  });
+  return (
+    <mesh ref={ref} position={[-27.6, 0.65, -25.5]} castShadow receiveShadow material={mat('#c0392b')}>
+      <boxGeometry args={[1.0, 0.06, 0.98]} />
+    </mesh>
+  );
+}
+
 function Home() {
   const tiles = useMemo(() => groundTexture('tiles', [10, 10]), []);
   const W = PALETTE.wallCream;
@@ -126,7 +147,7 @@ function Home() {
       <Box p={[-28, 0.25, -25.5]} s={[2, 0.5, 1.05]} c={PALETTE.wood} col />
       <Box p={[-28.05, 0.56, -25.5]} s={[1.9, 0.14, 0.95]} c="#e8eef5" />
       <Box p={[-28.8, 0.68, -25.5]} s={[0.35, 0.12, 0.7]} c="#ffffff" />
-      <Box p={[-27.6, 0.65, -25.5]} s={[1.0, 0.06, 0.98]} c="#c0392b" />
+      <Blanket />
       <Box p={[-21.6, 0.38, -26.9]} s={[1.3, 0.76, 0.6]} c="#9a6b43" col />
       <Box p={[-21.6, 0.8, -27.0]} s={[0.4, 0.06, 0.3]} c="#2c7be5" />
       <Box p={[-21.2, 0.84, -26.9]} s={[0.25, 0.14, 0.2]} c="#f1c40f" />
@@ -355,7 +376,7 @@ function Campus({ x0, x1, gateX, name, wall }: { x0: number; x1: number; gateX: 
         [31, 34.5].map((z) => (
           <group key={`${dx}${z}`}>
             <Box p={[gateX + dx, 0.38, z]} s={[1.3, 0.76, 0.55]} c={dx === 3.5 && z === 31 ? '#a0703f' : '#8b5e34'} col />
-            <Box p={[gateX + dx, 0.23, z + 0.55]} s={[1.2, 0.46, 0.3]} c="#555" />
+            <Box p={[gateX + dx, 0.23, z - 0.55]} s={[1.2, 0.46, 0.3]} c="#555" />
           </group>
         )),
       )}

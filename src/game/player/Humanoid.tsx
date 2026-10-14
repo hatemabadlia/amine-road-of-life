@@ -44,6 +44,8 @@ const EYE = mat('#1a120c', { rough: 0.2 });
 const MOUTH = mat('#7a3a32');
 const BLOB = new THREE.MeshBasicMaterial({ map: radialTexture('rgba(0,0,0,0.45)', 'rgba(0,0,0,0)'), transparent: true, depthWrite: false });
 
+export type Pose = 'stand' | 'lie' | 'sitLong' | 'sit' | 'bend' | 'kneel' | 'julus';
+
 export interface HumanoidHandle {
   /** horizontal speed in m/s, drives the walk cycle */
   speed: number;
@@ -53,6 +55,10 @@ export interface HumanoidHandle {
   talking: boolean;
   /** lying on the back (hospital bed): arms rest flat along the body */
   lying?: boolean;
+  /** body posture when not walking: lying in bed, sitting on a chair, bending at a sink… */
+  pose?: Pose;
+  /** height of the hip joint above the feet (metres) for postures that rest on furniture */
+  seat?: number;
   group: THREE.Group | null;
 }
 

@@ -42,6 +42,17 @@ export function exposeTestHooks() {
       return p ? { points: p.length, length: pathLength([pa.x, pa.z], p) } : null;
     },
     music: () => ({ theme: music.current(), level: music.level() }),
+    /** mark the objectives before `id` in this chapter as done and return its target (screenshots) */
+    skipTo: (id: string) => {
+      const g = useGame.getState().game;
+      if (!g) return null;
+      const ch = CHAPTERS.find((c) => c.id === g.chapter)!;
+      const i = ch.objectives.findIndex((o) => o.id === id);
+      for (const o of ch.objectives.slice(0, i)) if (!g.done.includes(o.id)) g.done.push(o.id);
+      if (g.phase !== 'play') g.phase = 'play';
+      useGame.setState({ game: { ...g } });
+      return ch.objectives[i]?.target ?? null;
+    },
     /** jump to the start of any chapter (testing only) */
     jumpTo: (id: number) => {
       const g = useGame.getState().game;

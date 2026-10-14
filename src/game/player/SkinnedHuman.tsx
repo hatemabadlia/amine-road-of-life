@@ -9,7 +9,7 @@ import { useGLTF } from '@react-three/drei';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Look } from '../../content/characters';
 import { radialTexture } from '../world/materials';
-import { Humanoid, type HumanoidHandle } from './Humanoid';
+import { Humanoid, type HumanoidHandle, type Pose } from './Humanoid';
 
 export const HUMAN_URL = `${import.meta.env.BASE_URL}models/human.glb`;
 const MODEL_HEIGHT = 525; // model units (cm) from feet to top of head
@@ -157,6 +157,55 @@ interface Arm {
 const V = new THREE.Vector3();
 const W = new THREE.Vector3();
 
+const v3 = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+
+/**
+ * A body posture, for the character's left side (x is mirrored for the right).
+ * Directions are in the character's space (+x left, +y up, +z forward); the arm
+ * directions are relative to the torso, which leans back by `lean` radians.
+ */
+interface Posture {
+  lean: number;
+  thigh: THREE.Vector3;
+  shin: THREE.Vector3;
+  foot: THREE.Vector3;
+  upper: THREE.Vector3;
+  fore: THREE.Vector3;
+  /** hip height: on furniture (`seat`), or from the legs with the lowest point `ground` above the floor */
+  seat: boolean;
+  ground: number;
+}
+const STAND_LEGS = { thigh: v3(0.06, -1, 0.02), shin: v3(0.04, -1, -0.03), foot: v3(0.12, -0.45, 1) };
+const POSTURES: Record<Pose, Posture> = {
+  stand: { lean: 0, ...STAND_LEGS, upper: v3(0.16, -1, 0.03), fore: v3(0.05, -1, 0.3), seat: false, ground: -1 },
+  // on the back, legs straight, arms along the body
+  lie: { lean: 1.5, thigh: v3(0.08, -0.03, 1), shin: v3(0.06, 0, 1), foot: v3(0.1, 1, 0.25), upper: v3(0.22, -1, -0.04), fore: v3(0.2, -1, 0.02), seat: true, ground: 0 },
+  // sitting up in bed, hands on the mattress beside the hips
+  sitLong: { lean: 0.12, thigh: v3(0.08, -0.03, 1), shin: v3(0.06, 0, 1), foot: v3(0.1, 1, 0.3), upper: v3(0.3, -1, -0.3), fore: v3(0.25, -1, 0.05), seat: true, ground: 0 },
+  // on a chair, forearms forward on the table
+  sit: { lean: 0.04, thigh: v3(0.12, 0, 1), shin: v3(0.05, -1, 0.12), foot: v3(0.12, -0.45, 1), upper: v3(0.15, -1, 0.35), fore: v3(-0.15, -0.3, 1), seat: true, ground: 0 },
+  // bent over a sink or a tap, hands forward
+  bend: { lean: -0.6, ...STAND_LEGS, upper: v3(0.14, -1, 0.35), fore: v3(-0.08, -0.7, 1), seat: false, ground: -1 },
+  // on both knees, leaning over the ground (planting, picking up)
+  kneel: { lean: -0.45, thigh: v3(0.1, -1, 0.12), shin: v3(0.05, 0, -1), foot: v3(0.05, -0.3, -1), upper: v3(0.15, -1, 0.35), fore: v3(0, -1, 0.7), seat: false, ground: 0.07 },
+  // sitting on the heels on the carpet (prayer, listening to the khutba)
+  julus: { lean: 0, thigh: v3(0.12, -0.32, 1), shin: v3(0.04, 0, -1), foot: v3(0.05, 0.1, -1), upper: v3(0.15, -1, 0.1), fore: v3(0.06, -0.75, 1), seat: false, ground: 0.07 },
+};
+for (const p of Object.values(POSTURES)) for (const v of [p.thigh, p.shin, p.foot, p.upper, p.fore]) v.normalize();
+
+/** The posture being shown, eased toward the target posture every frame. */
+interface Live {
+  lean: number;
+  thigh: THREE.Vector3[];
+  shin: THREE.Vector3[];
+  foot: THREE.Vector3[];
+  upper: THREE.Vector3[];
+  fore: THREE.Vector3[];
+  hip: number;
+}
+const mirror = (v: THREE.Vector3, s: number, out: THREE.Vector3) => out.set(v.x * s, v.y, v.z);
+const ease = (v: THREE.Vector3, target: THREE.Vector3, k: number) => v.lerp(target, k).normalize();
+
 interface Props {
   look: Look;
   /** idle pose for characters doing a job (shopkeeper, carpenter, grandfather in the grove) */
@@ -170,7 +219,7 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
   const state = useRef<HumanoidHandle>({ speed: 0, air: false, talking: false, group: null });
   const kid = look.scale < 0.85;
 
-  const { model, mixer, actions, head, spine, arms, legs, posed, clipPose } = useMemo(() => {
+  const { model, mixer, actions, head, spine, hips, arms, legs, posed, clipPose, dims } = useMemo(() => {
     const model = cloneSkinned(scene) as THREE.Group;
     const material = new THREE.MeshStandardMaterial({ map: paletteTexture(look), roughness: 0.78 });
     model.traverse((o) => {
@@ -203,22 +252,32 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
       side: (n === 'Left' ? 1 : -1) * Math.sign(leftX),
     });
     const legs = [leg('Left'), leg('Right')];
+    const hips = model.getObjectByName('Hips')!;
+    // body measurements in metres (scale 1), from the bind pose
+    const P = (o: THREE.Object3D) => model.worldToLocal(o.getWorldPosition(new THREE.Vector3())).multiplyScalar(UNIT);
+    const dims = {
+      hip: P(hips).y,
+      thigh: P(legs[0].up).distanceTo(P(legs[0].knee)),
+      shin: P(legs[0].knee).distanceTo(P(legs[0].foot)),
+      ankle: P(legs[0].foot).y,
+    };
     // bones posed by code on top of the clips. The mixer only writes a bone when its
     // value changes, so with a frozen pose any edit would pile up frame after frame:
     // they are put back to the clip's value before every update.
-    const posed = [head, spine, ...[arms.left, arms.right].flatMap((a) => [a.upper, a.fore, a.hand]), ...legs.flatMap((l) => [l.up, l.knee, l.foot])];
+    const posed = [hips, head, spine, ...[arms.left, arms.right].flatMap((a) => [a.upper, a.fore, a.hand]), ...legs.flatMap((l) => [l.up, l.knee, l.foot])];
     const clipPose = posed.map((b) => b.quaternion.clone());
     // children have proportionally bigger heads
     if (kid) head.scale.setScalar(1.18);
     const mixer = new THREE.AnimationMixer(model);
     const actions = Object.fromEntries(prepareClips(animations).map((c) => [c.name, mixer.clipAction(c)])) as Record<Act, THREE.AnimationAction>;
-    return { model, mixer, actions, head, spine, arms, legs, posed, clipPose };
+    return { model, mixer, actions, head, spine, hips, arms, legs, posed, clipPose, dims };
   }, [scene, animations, look, kid]);
 
   const current = useRef<Act>('Stand');
   const phase = useRef(Math.random() * 10);
   const stand = useRef(0);
   const talk = useRef(0);
+  const live = useRef<Live | null>(null);
   useEffect(() => {
     const first: Act = working ? 'Work' : 'Stand';
     current.current = first;
@@ -271,38 +330,73 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
     // posed by hand — hanging relaxed, and gesturing at waist height while talking
     stand.current = THREE.MathUtils.damp(stand.current, want === 'Stand' ? 1 : 0, 6, dt);
     talk.current = THREE.MathUtils.damp(talk.current, st.talking && want === 'Stand' ? 1 : 0, 3, dt);
-    if (stand.current > 0.01) {
+    const L = (live.current ??= {
+      lean: 0,
+      thigh: [0, 1].map(() => POSTURES.stand.thigh.clone()),
+      shin: [0, 1].map(() => POSTURES.stand.shin.clone()),
+      foot: [0, 1].map(() => POSTURES.stand.foot.clone()),
+      upper: [0, 1].map(() => POSTURES.stand.upper.clone()),
+      fore: [0, 1].map(() => POSTURES.stand.fore.clone()),
+      hip: dims.hip,
+    });
+    const target = POSTURES[st.pose ?? 'stand'];
+    const kb = 1 - Math.exp(-4 * dt);
+    const ka = 1 - Math.exp(-7 * dt);
+    const w = stand.current;
+    if (w > 0.01) {
       model.getWorldQuaternion(_root);
       const k = talk.current;
+      const resting = !st.pose || st.pose === 'stand';
       // the speaking hand rises and settles in slow beats, the other joins now and then
       const beat = 0.5 + 0.5 * Math.sin(t * 1.4);
       const other = Math.max(0, Math.sin(t * 0.55 + 1.3));
-      for (const a of [arms.right, arms.left]) {
-        const g = k * (a === arms.right ? 0.35 + 0.65 * beat : 0.6 * other);
+      L.lean += (target.lean - L.lean) * kb;
+      // the torso leans back (lying) or forward (bending) around the hips
+      turn(hips, X_AXIS, -L.lean * w);
+      [arms.left, arms.right].forEach((a, i) => {
         const s = a.side;
-        // upper arm: down along the body, a little forward when gesturing
-        aim(a.upper, a.fore, V.set(s * (0.16 + 0.04 * g), -1, 0.03 + 0.3 * g), stand.current);
-        // forearm: elbow slightly bent at rest, raised forward to the waist when gesturing
-        // (flat along the body when lying on the back)
-        if (st.lying) W.set(s * 0.2, -1, 0.02);
-        else W.set(s * (0.05 - 0.25 * g), -1 + 0.95 * g + 0.08 * g * Math.sin(t * 3.1), 0.3 + 0.7 * g);
-        aim(a.fore, a.hand, W, stand.current);
+        if (resting && !st.lying) {
+          // standing: hanging relaxed, raised forward to the waist when gesturing
+          const g = k * (a === arms.right ? 0.35 + 0.65 * beat : 0.6 * other);
+          V.set(s * (0.16 + 0.04 * g), -1, 0.03 + 0.3 * g);
+          W.set(s * (0.05 - 0.25 * g), -1 + 0.95 * g + 0.08 * g * Math.sin(t * 3.1), 0.3 + 0.7 * g);
+        } else {
+          const p = st.lying ? POSTURES.lie : target;
+          mirror(p.upper, s, V);
+          mirror(p.fore, s, W);
+        }
+        ease(L.upper[i], V.normalize(), ka);
+        ease(L.fore[i], W.normalize(), ka);
+        // arm directions follow the torso
+        V.copy(L.upper[i]).applyAxisAngle(X_AXIS, st.lying ? 0 : -L.lean);
+        W.copy(L.fore[i]).applyAxisAngle(X_AXIS, st.lying ? 0 : -L.lean);
+        aim(a.upper, a.fore, V, w);
+        aim(a.fore, a.hand, W, w);
         // straight wrist in line with the forearm
-        aim(a.hand, a.finger, W, stand.current);
-      }
-      // legs: feet side by side under the hips instead of the frozen stride
-      for (const l of legs) {
-        aim(l.up, l.knee, V.set(l.side * 0.06, -1, 0.02), stand.current);
-        aim(l.knee, l.foot, V.set(l.side * 0.04, -1, -0.03), stand.current);
-        aim(l.foot, l.toe, V.set(l.side * 0.12, -0.45, 1), stand.current);
-      }
+        aim(a.hand, a.finger, W, w);
+      });
+      legs.forEach((l, i) => {
+        ease(L.thigh[i], mirror(target.thigh, l.side, V), kb);
+        ease(L.shin[i], mirror(target.shin, l.side, V), kb);
+        ease(L.foot[i], mirror(target.foot, l.side, V), kb);
+        aim(l.up, l.knee, L.thigh[i], w);
+        aim(l.knee, l.foot, L.shin[i], w);
+        aim(l.foot, l.toe, L.foot[i], w);
+      });
+      // hip height: on the furniture, or carried by the legs
+      const legsHeight = -(L.thigh[0].y * dims.thigh + L.shin[0].y * dims.shin) + (target.ground < 0 ? dims.ankle : target.ground);
+      const hip = target.seat && st.seat !== undefined ? st.seat / size : legsHeight;
+      L.hip += (hip - L.hip) * kb;
+      model.position.y = (L.hip - dims.hip) * w;
       // breathing, and while talking small nods and a slow turn of the head
-      turn(spine, X_AXIS, Math.sin(t * 1.6) * 0.012 * stand.current);
+      turn(spine, X_AXIS, Math.sin(t * 1.6) * 0.012 * w);
       if (k > 0.01) {
         turn(head, X_AXIS, Math.sin(t * 3.7) * 0.04 * k);
         turn(head, Y_AXIS, Math.sin(t * 0.9) * 0.06 * k);
       }
-    }
+    } else model.position.y = 0;
+    // long clothes are a rigid skirt: hidden while sitting or lying
+    if (robe) robe.visible = w < 0.5 || (Math.abs(L.lean) < 0.3 && L.thigh[0].y < -0.8);
     if (blob.current) blob.current.visible = !st.air;
   });
 

@@ -14,6 +14,7 @@ import {
   finishChapter,
   formatTime,
   getChapter,
+  parseTime,
   peekObjective,
   resolveObjective,
   startChapter,
@@ -32,6 +33,7 @@ import {
   type KV,
 } from './save/save';
 import { objectById, spotById } from './world/layout';
+import { BED, hasAction } from './player/actions';
 import { quizSteps, withQuiz } from './story/quiz';
 import { GOOD, byTone, playChapter } from './story/simulate';
 import { sound } from './audio/sound';
@@ -86,13 +88,15 @@ export interface Spawn {
   z: number;
   yaw: number;
   nonce: number;
+  /** start the chapter asleep in bed (Amine gets up when the first objective is done) */
+  bed?: boolean;
 }
 
 /** Timestamp of the last dialogue close: guards against click-through onto the prompt. */
 export const uiTiming = { dialogueClosedAt: 0 };
 
 /** Live player pose written by the 3D controller every frame (not reactive). */
-export const livePose = { x: 0, y: 1, z: 0, yaw: 0, speed: 0 };
+export const livePose = { x: 0, y: 1, z: 0, yaw: 0, speed: 0, inBed: false, pose: 'stand' as string };
 
 const STAT_LABELS: Record<string, string> = {
   trust: 'ثقة الوالدين',
@@ -132,6 +136,8 @@ interface GameStore {
   saveFlash: number;
   /** a bus ride in progress (visual sequence; Amine is already at the destination) */
   ride: { to: string; started: number } | null;
+  /** the furniture Amine is using (sitting, lying, bending at it) while its dialogue runs */
+  using: string | null;
 
   newGame: () => void;
   /** play any chapter: from the player's own snapshot if reached, otherwise the missing chapters are played automatically on the good path */
@@ -211,6 +217,9 @@ export function availableSide(g: GameState, target: string): SideActivity | null
 function spawnForChapter(g: GameState): Spawn {
   const ch = chapterOf(g);
   const s = spotById.get(ch.start.spot)!;
+  // a morning that starts with getting out of bed: Amine wakes up in it
+  const first = ch.objectives[0];
+  if (first?.type === 'use' && first.target === 'bed' && parseTime(ch.start.time) < 12 * 60) return { x: BED.lie.x, z: BED.lie.z, yaw: 0, nonce: ++spawnNonce, bed: true };
   return { x: s.x, z: s.z, yaw: Math.PI, nonce: ++spawnNonce };
 }
 
@@ -364,6 +373,7 @@ export const useGame = create<GameStore>((set, get) => {
     toasts: [],
     spawn: { x: -25, z: -23, yaw: Math.PI, nonce: 0 },
     ride: null,
+    using: null,
     endRide: () => set({ ride: null }),
     saveFlash: 0,
 
@@ -461,6 +471,7 @@ export const useGame = create<GameStore>((set, get) => {
       sound.ui();
       const ch = chapterOf(g);
       const o = peekObjective(g, ch);
+      if (kind === 'object' && hasAction(target) && ((o && o.type !== 'goto' && o.target === target) || availableSide(g, target))) set({ using: target });
       if (o && o.type !== 'goto' && o.target === target) {
         resolveObjective(g, ch);
         const steps = o.quiz ? withQuiz(o.dialogue ?? [], quizSteps(o.quiz.age ?? g.age, o.quiz.n, o.quiz.kind)) : o.dialogue;
