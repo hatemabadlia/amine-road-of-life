@@ -115,7 +115,8 @@ function NPC({ id, x, z, lying = false, dress }: { id: string; x: number; z: num
     }
     if (model.current) {
       model.current.speed = agent.speed;
-      model.current.talking = st.dialogue?.view.kind === 'line' && st.dialogue.view.speaker === id;
+      model.current.lying = lying;
+      model.current.talking = !lying && st.dialogue?.view.kind === 'line' && st.dialogue.view.speaker === id;
     }
     if (tag.current) {
       tag.current.position.set(agent.x, h + 0.35, agent.z);

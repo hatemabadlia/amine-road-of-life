@@ -11,8 +11,8 @@ const q = new URLSearchParams(location.search);
 const speed = Number(q.get('speed') ?? 0);
 function Driven({ look, x, working }: { look: any; x: number; working?: boolean }) {
   const r = useRef<HumanoidHandle>(null);
-  useFrame(() => { if (r.current) { r.current.speed = speed; r.current.talking = q.has('talk'); } });
-  return <group position={[x, 0, 0]}><Character ref={r} look={look} working={working} /></group>;
+  useFrame(() => { if (r.current) { r.current.speed = speed; r.current.talking = q.has('talk'); r.current.lying = q.has('lie'); } });
+  return <group position={[x, q.has('lie') ? 0.5 : 0, 0]} rotation={q.has('lie') ? [-Math.PI / 2, Math.PI, 0, 'YXZ'] : [0, 0, 0]}><Character ref={r} look={look} working={working} /></group>;
 }
 function Look() {
   const { camera } = useThree();

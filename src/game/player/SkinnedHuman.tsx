@@ -104,6 +104,59 @@ type Act = 'Stand' | 'Walk' | 'Run' | 'Jump' | 'Work';
 /** walk-cycle time with both feet down, used as the standing pose */
 const STAND_TIME = 0.12;
 
+const _a = new THREE.Vector3();
+const _b = new THREE.Vector3();
+const _dir = new THREE.Vector3();
+const _rot = new THREE.Quaternion();
+const _wq = new THREE.Quaternion();
+const _pq = new THREE.Quaternion();
+const _root = new THREE.Quaternion();
+
+/**
+ * Turn `bone` so that the segment bone→child points along `dir` (given in the
+ * character's own space: +x its left, +y up, +z forward), blended by `w`.
+ */
+function aim(bone: THREE.Object3D, child: THREE.Object3D, dir: THREE.Vector3, w: number) {
+  bone.getWorldPosition(_a);
+  child.getWorldPosition(_b);
+  _b.sub(_a).normalize();
+  _dir.copy(dir).applyQuaternion(_root).normalize();
+  _rot.setFromUnitVectors(_b, _dir);
+  bone.getWorldQuaternion(_wq).premultiply(_rot);
+  bone.parent!.getWorldQuaternion(_pq).invert().multiply(_wq);
+  bone.quaternion.slerp(_pq, w);
+}
+
+const _axis = new THREE.Vector3();
+/** Rotate `bone` by `angle` about an axis given in the character's own space. */
+function turn(bone: THREE.Object3D, axis: THREE.Vector3, angle: number) {
+  _axis.copy(axis).applyQuaternion(_root).normalize();
+  _rot.setFromAxisAngle(_axis, angle);
+  bone.getWorldQuaternion(_wq).premultiply(_rot);
+  bone.quaternion.copy(bone.parent!.getWorldQuaternion(_pq).invert().multiply(_wq));
+}
+const X_AXIS = new THREE.Vector3(1, 0, 0);
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+
+interface Leg {
+  up: THREE.Object3D;
+  knee: THREE.Object3D;
+  foot: THREE.Object3D;
+  toe: THREE.Object3D;
+  side: number;
+}
+
+interface Arm {
+  upper: THREE.Object3D;
+  fore: THREE.Object3D;
+  hand: THREE.Object3D;
+  finger: THREE.Object3D;
+  /** +1 for the character's left side, -1 for its right */
+  side: number;
+}
+const V = new THREE.Vector3();
+const W = new THREE.Vector3();
+
 interface Props {
   look: Look;
   /** idle pose for characters doing a job (shopkeeper, carpenter, grandfather in the grove) */
@@ -117,7 +170,7 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
   const state = useRef<HumanoidHandle>({ speed: 0, air: false, talking: false, group: null });
   const kid = look.scale < 0.85;
 
-  const { model, mixer, actions, head, spine, rightArm } = useMemo(() => {
+  const { model, mixer, actions, head, spine, arms, legs, posed, clipPose } = useMemo(() => {
     const model = cloneSkinned(scene) as THREE.Group;
     const material = new THREE.MeshStandardMaterial({ map: paletteTexture(look), roughness: 0.78 });
     model.traverse((o) => {
@@ -131,16 +184,41 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
     });
     const head = model.getObjectByName('Head')!;
     const spine = model.getObjectByName('Spine1')!;
-    const rightArm = model.getObjectByName('RightArm')!;
+    // which way is the character's left in model space (+z is forward)
+    model.updateMatrixWorld(true);
+    const leftX = model.worldToLocal(model.getObjectByName('LeftArm')!.getWorldPosition(new THREE.Vector3())).x;
+    const arm = (n: 'Left' | 'Right'): Arm => ({
+      upper: model.getObjectByName(`${n}Arm`)!,
+      fore: model.getObjectByName(`${n}ForeArm`)!,
+      hand: model.getObjectByName(`${n}Hand`)!,
+      finger: model.getObjectByName(`${n}HandIndex1`)!,
+      side: (n === 'Left' ? 1 : -1) * Math.sign(leftX),
+    });
+    const arms = { left: arm('Left'), right: arm('Right') };
+    const leg = (n: 'Left' | 'Right'): Leg => ({
+      up: model.getObjectByName(`${n}UpLeg`)!,
+      knee: model.getObjectByName(`${n}Leg`)!,
+      foot: model.getObjectByName(`${n}Foot`)!,
+      toe: model.getObjectByName(`${n}ToeBase`)!,
+      side: (n === 'Left' ? 1 : -1) * Math.sign(leftX),
+    });
+    const legs = [leg('Left'), leg('Right')];
+    // bones posed by code on top of the clips. The mixer only writes a bone when its
+    // value changes, so with a frozen pose any edit would pile up frame after frame:
+    // they are put back to the clip's value before every update.
+    const posed = [head, spine, ...[arms.left, arms.right].flatMap((a) => [a.upper, a.fore, a.hand]), ...legs.flatMap((l) => [l.up, l.knee, l.foot])];
+    const clipPose = posed.map((b) => b.quaternion.clone());
     // children have proportionally bigger heads
     if (kid) head.scale.setScalar(1.18);
     const mixer = new THREE.AnimationMixer(model);
     const actions = Object.fromEntries(prepareClips(animations).map((c) => [c.name, mixer.clipAction(c)])) as Record<Act, THREE.AnimationAction>;
-    return { model, mixer, actions, head, spine, rightArm };
+    return { model, mixer, actions, head, spine, arms, legs, posed, clipPose };
   }, [scene, animations, look, kid]);
 
   const current = useRef<Act>('Stand');
   const phase = useRef(Math.random() * 10);
+  const stand = useRef(0);
+  const talk = useRef(0);
   useEffect(() => {
     const first: Act = working ? 'Work' : 'Stand';
     current.current = first;
@@ -184,15 +262,46 @@ const SkinnedBody = forwardRef<HumanoidHandle, Props>(function SkinnedBody({ loo
     const size = look.scale;
     if (want === 'Walk') actions.Walk.timeScale = THREE.MathUtils.clamp(sp / (1.35 * size), 0.6, 1.8);
     if (want === 'Run') actions.Run.timeScale = THREE.MathUtils.clamp(sp / (5.2 * size), 0.7, 1.5);
+    posed.forEach((b, i) => b.quaternion.copy(clipPose[i]));
     mixer.update(dt);
-    // breathing while standing
-    if (want === 'Stand') spine.rotation.x += Math.sin(phase.current * 1.6) * 0.015;
-    // talking: small nods and a hand gesture layered on top of the animation
+    posed.forEach((b, i) => clipPose[i].copy(b.quaternion));
     phase.current += dt;
-    if (st.talking && want !== 'Run') {
-      head.rotation.x += Math.sin(phase.current * 5.3) * 0.06;
-      spine.rotation.y += Math.sin(phase.current * 1.7) * 0.05;
-      rightArm.rotation.z += (Math.sin(phase.current * 2.4) * 0.5 + 0.5) * 0.25;
+    const t = phase.current;
+    // standing: the walk frame leaves one arm forward and one back, so the arms are
+    // posed by hand — hanging relaxed, and gesturing at waist height while talking
+    stand.current = THREE.MathUtils.damp(stand.current, want === 'Stand' ? 1 : 0, 6, dt);
+    talk.current = THREE.MathUtils.damp(talk.current, st.talking && want === 'Stand' ? 1 : 0, 3, dt);
+    if (stand.current > 0.01) {
+      model.getWorldQuaternion(_root);
+      const k = talk.current;
+      // the speaking hand rises and settles in slow beats, the other joins now and then
+      const beat = 0.5 + 0.5 * Math.sin(t * 1.4);
+      const other = Math.max(0, Math.sin(t * 0.55 + 1.3));
+      for (const a of [arms.right, arms.left]) {
+        const g = k * (a === arms.right ? 0.35 + 0.65 * beat : 0.6 * other);
+        const s = a.side;
+        // upper arm: down along the body, a little forward when gesturing
+        aim(a.upper, a.fore, V.set(s * (0.16 + 0.04 * g), -1, 0.03 + 0.3 * g), stand.current);
+        // forearm: elbow slightly bent at rest, raised forward to the waist when gesturing
+        // (flat along the body when lying on the back)
+        if (st.lying) W.set(s * 0.2, -1, 0.02);
+        else W.set(s * (0.05 - 0.25 * g), -1 + 0.95 * g + 0.08 * g * Math.sin(t * 3.1), 0.3 + 0.7 * g);
+        aim(a.fore, a.hand, W, stand.current);
+        // straight wrist in line with the forearm
+        aim(a.hand, a.finger, W, stand.current);
+      }
+      // legs: feet side by side under the hips instead of the frozen stride
+      for (const l of legs) {
+        aim(l.up, l.knee, V.set(l.side * 0.06, -1, 0.02), stand.current);
+        aim(l.knee, l.foot, V.set(l.side * 0.04, -1, -0.03), stand.current);
+        aim(l.foot, l.toe, V.set(l.side * 0.12, -0.45, 1), stand.current);
+      }
+      // breathing, and while talking small nods and a slow turn of the head
+      turn(spine, X_AXIS, Math.sin(t * 1.6) * 0.012 * stand.current);
+      if (k > 0.01) {
+        turn(head, X_AXIS, Math.sin(t * 3.7) * 0.04 * k);
+        turn(head, Y_AXIS, Math.sin(t * 0.9) * 0.06 * k);
+      }
     }
     if (blob.current) blob.current.visible = !st.air;
   });

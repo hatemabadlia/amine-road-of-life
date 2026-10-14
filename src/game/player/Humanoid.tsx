@@ -51,6 +51,8 @@ export interface HumanoidHandle {
   air: boolean;
   /** talking animation */
   talking: boolean;
+  /** lying on the back (hospital bed): arms rest flat along the body */
+  lying?: boolean;
   group: THREE.Group | null;
 }
 
