@@ -513,15 +513,15 @@ test('chapter 53: Eid morning — prayer with Baba, forgiveness at home, the eid
   expect(g.flags.fixed_table).toBe(true);
 });
 
-test('start from any chapter: pick chapter 45 in the menu and play it to the end', async ({ page }) => {
+test('chapters panel: every chapter is open without a save — pick 45 and play it to the end', async ({ page }) => {
   test.setTimeout(300_000);
   await page.goto(URL);
   await page.evaluate(() => localStorage.clear());
   await page.goto(URL);
-  await page.getByTestId('pick-chapter').click();
-  await expect(page.getByTestId('pick-list').locator('.chapter-item')).toHaveCount(68);
-  await page.getByTestId('pick-45').click();
-  await page.getByTestId('confirm-pick').click();
+  await page.getByTestId('chapters').click();
+  await expect(page.getByTestId('chapter-list').locator('.chapter-item:enabled')).toHaveCount(68);
+  await page.getByTestId('chapter-45').click();
+  await page.getByTestId('confirm-replay').click();
   await expect(page.getByTestId('chapter-card')).toContainText('مفترق الطرق', { timeout: 60_000 });
   const g = await page.evaluate(() => window.__AMINE__.state().game);
   expect(g.chapter).toBe(45);
@@ -531,6 +531,17 @@ test('start from any chapter: pick chapter 45 in the menu and play it to the end
   await expect(page.getByTestId('chapter-card')).toContainText('ستة عشر سنة', { timeout: 20_000 });
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('amine.save') ?? '{}'));
   expect(saved.state.chapter).toBe(46);
+  // the pause menu also opens chapters ahead: jump to 60 keeps the choices made so far
+  const history = await page.evaluate(() => window.__AMINE__.state().game.history.length);
+  await page.waitForTimeout(950);
+  await page.getByTestId('start-chapter').click();
+  await advanceDialogue(page);
+  await page.keyboard.press('Escape');
+  await page.getByTestId('pause-menu').getByRole('button', { name: /الفصول/ }).click();
+  await page.getByTestId('chapter-60').click();
+  await page.getByTestId('confirm-replay').click();
+  await expect.poll(() => page.evaluate(() => window.__AMINE__.state().game.chapter)).toBe(60);
+  expect(await page.evaluate(() => window.__AMINE__.state().game.history.length)).toBeGreaterThan(history);
 });
 
 test('a ?chapter= link opens that chapter directly', async ({ page }) => {

@@ -134,7 +134,7 @@ interface GameStore {
   ride: { to: string; started: number } | null;
 
   newGame: () => void;
-  /** new game that starts at any chapter; earlier chapters are played automatically on the good path */
+  /** play any chapter: from the player's own snapshot if reached, otherwise the missing chapters are played automatically on the good path */
   startAt: (id: number) => void;
   continueGame: () => void;
   replayChapter: (id: number) => void;
@@ -377,9 +377,22 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     startAt: (id) => {
-      const g = createState();
-      startChapter(g, CHAPTERS, 1);
-      const snapshots: Record<number, GameState> = { 1: structuredClone(g) };
+      // continue from the player's own latest snapshot at or before this chapter, if there is one
+      const own = get().snapshots;
+      const base = Object.keys(own)
+        .map(Number)
+        .filter((k) => k <= id)
+        .sort((a, b) => b - a)[0];
+      let g: GameState;
+      let snapshots: Record<number, GameState>;
+      if (base) {
+        g = structuredClone(own[base]);
+        snapshots = Object.fromEntries(Object.entries(own).filter(([k]) => Number(k) <= base));
+      } else {
+        g = createState();
+        startChapter(g, CHAPTERS, 1);
+        snapshots = { 1: structuredClone(g) };
+      }
       const good = byTone(GOOD);
       while (g.chapter < id) {
         playChapter(g, CHAPTERS, good);

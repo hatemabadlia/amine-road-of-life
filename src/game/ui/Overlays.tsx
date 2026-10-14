@@ -138,22 +138,24 @@ export function ChapterSelect({ onDone }: { onDone?: () => void }) {
   const snapshots = useGame((s) => s.snapshots);
   const current = useGame((s) => s.game?.chapter ?? 0);
   const [confirm, setConfirm] = useState<number | null>(null);
-  const available = new Set(Object.keys(snapshots).map(Number));
+  const reached = new Set(Object.keys(snapshots).map(Number));
   if (confirm !== null) {
     return (
       <div className="stack">
         <p>
-          تعاود الفصل {confirm}؟ التقدّم بعد هذا الفصل يتمسح، والقرارات اللي جاو من بعد يتعاودو.
+          {reached.has(confirm)
+            ? `تعاود الفصل ${confirm}؟ التقدّم بعد هذا الفصل يتمسح، والقرارات اللي جاو من بعد يتعاودو.`
+            : `تروح للفصل ${confirm}؟ الفصول اللي ما لعبتهمش قبلو يتلعبو وحدهم بالاختيارات المليحة.`}
         </p>
         <button
           className="btn primary"
           onClick={() => {
-            useGame.getState().replayChapter(confirm);
+            useGame.getState().startAt(confirm);
             onDone?.();
           }}
           data-testid="confirm-replay"
         >
-          إيه، نعاود
+          إيه، نروح
         </button>
         <button className="btn" onClick={() => setConfirm(null)}>
           لا
@@ -162,11 +164,11 @@ export function ChapterSelect({ onDone }: { onDone?: () => void }) {
     );
   }
   return (
-    <div className="chapter-list">
+    <div className="chapter-list" data-testid="chapter-list">
       {CHAPTERS.map((c) => (
-        <button key={c.id} className="chapter-item" disabled={!available.has(c.id)} onClick={() => setConfirm(c.id)}>
+        <button key={c.id} className={`chapter-item${reached.has(c.id) ? ' reached' : ''}`} onClick={() => setConfirm(c.id)} data-testid={`chapter-${c.id}`}>
           <b>
-            {String(c.id).padStart(2, '0')} {c.id === current ? '• الحالي' : ''}
+            {String(c.id).padStart(2, '0')} · {c.age} {c.age <= 10 ? 'سنين' : 'سنة'} {c.id === current ? '• الحالي' : ''}
           </b>
           {c.title}
         </button>

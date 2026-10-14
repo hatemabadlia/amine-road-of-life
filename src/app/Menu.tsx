@@ -4,7 +4,6 @@ import { useGame } from '../game/store';
 import { ChapterSelect, ControlsPanel, SettingsPanel } from '../game/ui/Overlays';
 import { ALL_ENDINGS, endingById } from '../content/endings';
 import { sound } from '../game/audio/sound';
-import { CHAPTERS } from '../content/chapters';
 
 function Skyline() {
   // stylised Tébessa skyline: houses, minaret, palms, Djebel Dyr
@@ -47,14 +46,13 @@ function Skyline() {
   );
 }
 
-type Panel = null | 'settings' | 'controls' | 'chapters' | 'endings' | 'confirmNew' | 'pick';
+type Panel = null | 'settings' | 'controls' | 'chapters' | 'endings' | 'confirmNew';
 
 export function Menu() {
   const hasSave = useGame((s) => s.hasSave);
   const msg = useGame((s) => s.loadMessage);
   const endings = useGame((s) => s.endings);
   const [panel, setPanel] = useState<Panel>(null);
-  const [pick, setPick] = useState<number | null>(null);
   const st = useGame.getState();
 
   const start = () => {
@@ -88,23 +86,14 @@ export function Menu() {
           </button>
           <button
             className="btn"
-            disabled={!hasSave}
             onClick={() => {
+              sound.unlock();
               st.loadSnapshotsForMenu();
               setPanel('chapters');
             }}
+            data-testid="chapters"
           >
             📖 الفصول
-          </button>
-          <button
-            className="btn"
-            onClick={() => {
-              setPick(null);
-              setPanel('pick');
-            }}
-            data-testid="pick-chapter"
-          >
-            🎯 ابدا من أي فصل
           </button>
           <button className="btn" onClick={() => setPanel('endings')}>
             🌟 النهايات ({endings.length}/{ALL_ENDINGS.length})
@@ -144,44 +133,6 @@ export function Menu() {
                 </div>
               </>
             )}
-            {panel === 'pick' && pick === null && (
-              <>
-                <h2>ابدا من أي فصل</h2>
-                <p style={{ color: 'var(--text-dim)', marginTop: 0 }}>الفصول اللي قبلو يتلعبو وحدهم بالاختيارات المليحة.</p>
-                <div className="chapter-list" data-testid="pick-list">
-                  {CHAPTERS.map((c) => (
-                    <button key={c.id} className="chapter-item" onClick={() => setPick(c.id)} data-testid={`pick-${c.id}`}>
-                      <b>
-                        {String(c.id).padStart(2, '0')} · {c.age} {c.age <= 10 ? 'سنين' : 'سنة'}
-                      </b>
-                      {c.title}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-            {panel === 'pick' && pick !== null && (
-              <>
-                <h2>الفصل {pick}</h2>
-                <p>{hasSave ? 'اللعبة المحفوظة تتمسح وتبدا لعبة جديدة من هذا الفصل (النهايات المكتشفة يبقاو).' : 'نبداو لعبة جديدة من هذا الفصل؟'}</p>
-                <div className="stack">
-                  <button
-                    className="btn primary"
-                    onClick={() => {
-                      sound.unlock();
-                      setPanel(null);
-                      st.startAt(pick);
-                    }}
-                    data-testid="confirm-pick"
-                  >
-                    إيه، ابدا
-                  </button>
-                  <button className="btn" onClick={() => setPick(null)}>
-                    اختار فصل آخر
-                  </button>
-                </div>
-              </>
-            )}
             {panel === 'settings' && (
               <>
                 <h2>الإعدادات</h2>
@@ -197,7 +148,7 @@ export function Menu() {
             {panel === 'chapters' && (
               <>
                 <h2>الفصول</h2>
-                <p style={{ color: 'var(--text-dim)', marginTop: 0 }}>تقدر تعاود أي فصل وصلتلو.</p>
+                <p style={{ color: 'var(--text-dim)', marginTop: 0 }}>اختار أي فصل. الفصول اللي وصلتلهم مضويين.</p>
                 <ChapterSelect />
               </>
             )}
