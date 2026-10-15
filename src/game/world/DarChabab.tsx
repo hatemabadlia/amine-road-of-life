@@ -34,7 +34,7 @@ export function DarChababBuilding({ age }: { age: number }) {
       {[11, 15, 19, 24].map((x) => (
         <Window key={x} p={[x, 1.8, -67.86]} />
       ))}
-      <Sign p={[7.82, 4.1, -73.5]} text="دار الشباب — حي النصر" w={5.6} h={0.8} rotY={-Math.PI / 2} bg="#1e6b45" />
+      <Sign p={[7.82, 4.1, -73.5]} text="دار الشباب جدي عبد الجليل" w={6.4} h={0.8} rotY={-Math.PI / 2} bg="#1e6b45" />
       {/* sign-up desk, notice board, stage with a banner */}
       <Box p={[10.4, 0.45, -69.2]} s={[2, 0.9, 0.7]} c="#6b4a2f" col />
       <Box p={[10.4, 0.92, -69.2]} s={[0.5, 0.04, 0.35]} c="#f5f5f5" />

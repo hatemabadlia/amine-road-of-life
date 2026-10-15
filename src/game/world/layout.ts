@@ -65,7 +65,7 @@ export const SPOTS: Spot[] = [
   spot('grandpa', 'دار جدّي', -23, -55, 3.5),
   // places across town (reached on foot or by bus)
   spot('dar_chabab_front', 'باب دار الشباب', 5.8, -73.5, 2.5),
-  spot('dar_chabab', 'دار الشباب', 14, -73.5, 3),
+  spot('dar_chabab', 'دار الشباب جدي عبد الجليل', 14, -73.5, 3),
   spot('dar_yard', 'ساحة دار الشباب', 36, -73.5, 4),
   spot('cyber_front', 'قدام السيبر', 5.8, -61.5, 2.5),
   spot('cyber', 'سيبر النجمة', 14, -61.5, 3),
@@ -140,7 +140,7 @@ export const FOOTPRINTS: Footprint[] = [
   { id: 'block_s', name: '', x0: 10, z0: 50, x1: 40, z1: 66, kind: 'deco' },
   { id: 'block_ne', name: '', x0: 50, z0: -66, x1: 72, z1: -40, kind: 'deco' },
   { id: 'neighbor2', name: '', x0: -40, z0: -46, x1: -20, z1: -38, kind: 'deco' },
-  { id: 'dar_chabab', name: 'دار الشباب', x0: 8, z0: -79, x1: 28, z1: -68, kind: 'public' },
+  { id: 'dar_chabab', name: 'دار الشباب جدي عبد الجليل', x0: 8, z0: -79, x1: 28, z1: -68, kind: 'public' },
   { id: 'dar_yard', name: 'ساحة دار الشباب', x0: 29, z0: -79, x1: 44, z1: -68, kind: 'plaza' },
   { id: 'mida', name: 'الميضة', x0: 24.4, z0: -47.2, x1: 29, z1: -40.8, kind: 'public' },
   { id: 'cyber', name: 'السيبر', x0: 8, z0: -66, x1: 20, z1: -57, kind: 'shop' },
